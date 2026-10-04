@@ -55,17 +55,39 @@ service cloud.firestore {
       allow create, update: if request.auth != null;
     }
 
-    // Registro de Administradores Autorizados (Zero-Trust)
+    // Funciones auxiliares para Zero-Trust SOC
+    function isSuperAdmin() {
+      return request.auth != null && (
+        request.auth.token.email == 'leoeze83@gmail.com' ||
+        (exists(/databases/$(database)/documents/admins/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.role == 'SUPERADMIN' &&
+         get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.active == true)
+      );
+    }
+
+    function isSOCAdmin() {
+      return request.auth != null && (
+        request.auth.token.email == 'leoeze83@gmail.com' ||
+        (exists(/databases/$(database)/documents/admins/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.active == true)
+      );
+    }
+
+    // Registro de Administradores Autorizados (Zero-Trust & ABM del SOC)
     match /admins/{adminId} {
-      allow read, write: if request.auth != null && request.auth.uid == adminId;
+      // Lectura permitida si es admin del SOC o si consulta su propio documento
+      allow read: if request.auth != null && (isSOCAdmin() || request.auth.uid == adminId);
+      // Alta, Baja y Modificación permitida a SuperAdmin o autoprovisión del dueño
+      allow create, update, delete: if isSuperAdmin() || (request.auth != null && request.auth.uid == adminId && request.auth.token.email == 'leoeze83@gmail.com');
     }
 
     // Telemetría de Seguridad y Métricas en Tiempo Real (Exclusivo Dashboard Privado)
     match /security_telemetry/{eventId} {
       // Clientes de cualquier dispositivo instalado pueden registrar eventos anonimizados (Write-only)
       allow create: if request.resource.data.keys().hasAll(['eventType', 'category', 'severity', 'timestamp']);
-      // Solo administradores verificados en la colección /admins/ pueden leer o auditar
-      allow read, delete: if request.auth != null && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+      // Solo administradores verificados en el SOC pueden leer o auditar
+      allow read: if isSOCAdmin();
+      allow delete: if isSuperAdmin();
     }
   }
 }
