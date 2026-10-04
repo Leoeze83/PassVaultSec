@@ -44,4 +44,16 @@ class Converters {
         val type = object : TypeToken<Map<String, Collaborator>>() {}.type
         return gson.fromJson(json, type) ?: emptyMap()
     }
+
+    @TypeConverter
+    fun fromUrlPreviewList(previews: List<com.passvaultsec.app.domain.model.UrlPreview>?): String {
+        return gson.toJson(previews ?: emptyList<com.passvaultsec.app.domain.model.UrlPreview>())
+    }
+
+    @TypeConverter
+    fun toUrlPreviewList(json: String?): List<com.passvaultsec.app.domain.model.UrlPreview> {
+        if (json.isNullOrEmpty()) return emptyList()
+        val type = object : TypeToken<List<com.passvaultsec.app.domain.model.UrlPreview>>() {}.type
+        return gson.fromJson(json, type) ?: emptyList()
+    }
 }

@@ -11,6 +11,9 @@
     <!-- Notificaciones en Android 13+ (API 33+) -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+    <!-- Opcional para captura de fotos -->
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+
     <application
         android:name=".PassVaultApplication"
         android:allowBackup="false"
@@ -21,6 +24,16 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.PassVaultSec">
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
 
         <activity
             android:name=".presentation.MainActivity"

@@ -14,6 +14,9 @@ data class Note(
     val isChecklist: Boolean = false,
     val checklistItems: List<ChecklistItem> = emptyList(),
     val color: Long = 0xFFFFFFFF, // Color por defecto (blanco)
+    val textColor: Long? = null, // Color de texto personalizado (null = contraste automático)
+    val imageUris: List<String> = emptyList(), // Rutas locales de fotos / GIFs adjuntos
+    val urlPreviews: List<UrlPreview> = emptyList(), // Vistas previas de enlaces
     val isPinned: Boolean = false,
     val isLocked: Boolean = false,
     val isArchived: Boolean = false,

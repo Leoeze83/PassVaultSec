@@ -9,7 +9,7 @@ import com.passvaultsec.app.data.local.converter.Converters
 import com.passvaultsec.app.data.local.dao.NoteDao
 import com.passvaultsec.app.data.local.entity.NoteEntity
 
-@Database(entities = [NoteEntity::class], version = 1, exportSchema = false)
+@Database(entities = [NoteEntity::class], version = 2, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
 

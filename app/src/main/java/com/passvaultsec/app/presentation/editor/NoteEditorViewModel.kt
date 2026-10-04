@@ -20,6 +20,10 @@ data class NoteEditorUiState(
     val canEdit: Boolean = true,
     val isCollaboratorDialogOpen: Boolean = false,
     val isColorPickerOpen: Boolean = false,
+    val isTextColorPickerOpen: Boolean = false,
+    val isEmojiPickerOpen: Boolean = false,
+    val isInsertUrlDialogOpen: Boolean = false,
+    val isLoadingUrlPreview: Boolean = false,
     val errorMessage: String? = null
 )
 
@@ -89,6 +93,80 @@ class NoteEditorViewModel(
         )
     }
 
+    fun onTextColorChange(textColorLong: Long?) {
+        if (!_uiState.value.canEdit) return
+        _uiState.value = _uiState.value.copy(
+            note = _uiState.value.note.copy(textColor = textColorLong)
+        )
+    }
+
+    fun onAddImage(imagePath: String) {
+        if (!_uiState.value.canEdit) return
+        val currentImages = _uiState.value.note.imageUris.toMutableList()
+        currentImages.add(imagePath)
+        _uiState.value = _uiState.value.copy(
+            note = _uiState.value.note.copy(imageUris = currentImages)
+        )
+        saveNote()
+    }
+
+    fun onRemoveImage(index: Int) {
+        if (!_uiState.value.canEdit) return
+        val currentImages = _uiState.value.note.imageUris.toMutableList()
+        if (index in currentImages.indices) {
+            currentImages.removeAt(index)
+            _uiState.value = _uiState.value.copy(
+                note = _uiState.value.note.copy(imageUris = currentImages)
+            )
+            saveNote()
+        }
+    }
+
+    fun onInsertEmoji(emoji: String) {
+        if (!_uiState.value.canEdit) return
+        val currentNote = _uiState.value.note
+        if (currentNote.isChecklist && currentNote.checklistItems.isNotEmpty()) {
+            val lastIndex = currentNote.checklistItems.size - 1
+            val lastItem = currentNote.checklistItems[lastIndex]
+            val updatedItem = lastItem.copy(text = lastItem.text + emoji)
+            onChecklistItemChange(lastIndex, updatedItem)
+        } else {
+            val updatedContent = currentNote.content + emoji
+            onContentChange(updatedContent)
+        }
+    }
+
+    fun onAddUrlPreview(url: String) {
+        if (!_uiState.value.canEdit) return
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoadingUrlPreview = true, isInsertUrlDialogOpen = false)
+            val preview = com.passvaultsec.app.core.ui.util.UrlMetadataExtractor.fetchUrlPreview(url)
+            if (preview != null) {
+                val currentPreviews = _uiState.value.note.urlPreviews.toMutableList()
+                if (!currentPreviews.any { it.url.equals(url, ignoreCase = true) }) {
+                    currentPreviews.add(preview)
+                    _uiState.value = _uiState.value.copy(
+                        note = _uiState.value.note.copy(urlPreviews = currentPreviews)
+                    )
+                    saveNote()
+                }
+            }
+            _uiState.value = _uiState.value.copy(isLoadingUrlPreview = false)
+        }
+    }
+
+    fun onRemoveUrlPreview(index: Int) {
+        if (!_uiState.value.canEdit) return
+        val currentPreviews = _uiState.value.note.urlPreviews.toMutableList()
+        if (index in currentPreviews.indices) {
+            currentPreviews.removeAt(index)
+            _uiState.value = _uiState.value.copy(
+                note = _uiState.value.note.copy(urlPreviews = currentPreviews)
+            )
+            saveNote()
+        }
+    }
+
     fun onTogglePin() {
         val updated = !_uiState.value.note.isPinned
         _uiState.value = _uiState.value.copy(
@@ -102,15 +180,12 @@ class NoteEditorViewModel(
         val willBeChecklist = !current.isChecklist
 
         val newItems = if (willBeChecklist && current.checklistItems.isEmpty()) {
-            // Convierte líneas de texto en elementos de lista
             val lines = current.content.lines().filter { it.isNotBlank() }
             if (lines.isNotEmpty()) {
                 lines.map { ChecklistItem(text = it) }
             } else {
                 listOf(ChecklistItem(text = ""))
             }
-        } else if (!willBeChecklist && current.checklistItems.isNotEmpty()) {
-            current.checklistItems
         } else {
             current.checklistItems
         }
@@ -190,7 +265,31 @@ class NoteEditorViewModel(
     }
 
     fun setColorPickerOpen(isOpen: Boolean) {
-        _uiState.value = _uiState.value.copy(isColorPickerOpen = isOpen)
+        _uiState.value = _uiState.value.copy(
+            isColorPickerOpen = isOpen,
+            isTextColorPickerOpen = if (isOpen) false else _uiState.value.isTextColorPickerOpen,
+            isEmojiPickerOpen = false
+        )
+    }
+
+    fun setTextColorPickerOpen(isOpen: Boolean) {
+        _uiState.value = _uiState.value.copy(
+            isTextColorPickerOpen = isOpen,
+            isColorPickerOpen = if (isOpen) false else _uiState.value.isColorPickerOpen,
+            isEmojiPickerOpen = false
+        )
+    }
+
+    fun setEmojiPickerOpen(isOpen: Boolean) {
+        _uiState.value = _uiState.value.copy(
+            isEmojiPickerOpen = isOpen,
+            isColorPickerOpen = false,
+            isTextColorPickerOpen = false
+        )
+    }
+
+    fun setInsertUrlDialogOpen(isOpen: Boolean) {
+        _uiState.value = _uiState.value.copy(isInsertUrlDialogOpen = isOpen)
     }
 
     fun addCollaborator(email: String, role: CollaboratorRole) {
@@ -217,7 +316,7 @@ class NoteEditorViewModel(
     fun saveNote() {
         val currentNote = _uiState.value.note
         // Si la nota está totalmente vacía y es nueva, no guardamos basura
-        if (currentNote.title.isBlank() && currentNote.content.isBlank() && currentNote.checklistItems.isEmpty()) {
+        if (currentNote.title.isBlank() && currentNote.content.isBlank() && currentNote.checklistItems.isEmpty() && currentNote.imageUris.isEmpty() && currentNote.urlPreviews.isEmpty()) {
             return
         }
 

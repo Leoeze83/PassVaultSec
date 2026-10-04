@@ -40,8 +40,13 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.filled.Image
+import coil.compose.AsyncImage
 import com.passvaultsec.app.core.ui.theme.getAdaptiveNoteColor
 import com.passvaultsec.app.core.ui.theme.getAdaptiveNoteTextColor
+import com.passvaultsec.app.core.ui.theme.getAdaptiveSecondaryTextColor
 import com.passvaultsec.app.domain.model.Note
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -55,8 +60,8 @@ fun NoteCard(
 ) {
     val isDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
     val cardColor = getAdaptiveNoteColor(note.color, isDark)
-    val textColor = getAdaptiveNoteTextColor(note.color, isDark)
-    val secondaryTextColor = if (isDark) Color(0xFF9AA0A6) else Color(0xFF5F6368)
+    val textColor = getAdaptiveNoteTextColor(note.color, isDark, note.textColor)
+    val secondaryTextColor = getAdaptiveSecondaryTextColor(note.color, isDark, note.textColor)
     val isLockedAndProtected = note.isLocked && !isUnlocked
 
     Card(
@@ -68,11 +73,24 @@ fun NoteCard(
         border = BorderStroke(1.dp, if (isDark) Color(0x33FFFFFF) else Color(0x1F000000)),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(14.dp)
-        ) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            // Miniatura de imagen o GIF si existe y no está bloqueada
+            if (!isLockedAndProtected && note.imageUris.isNotEmpty()) {
+                AsyncImage(
+                    model = note.imageUris.first(),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(115.dp)
+                )
+            }
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(14.dp)
+            ) {
             // Fila Superior: Título y Botón Fijar
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -167,8 +185,8 @@ fun NoteCard(
                 }
             }
 
-            // Etiquetas y colaboradores
-            if (note.labels.isNotEmpty() || note.collaborators.isNotEmpty() || note.isLocked) {
+            // Etiquetas, colaboradores y enlaces
+            if (note.labels.isNotEmpty() || note.collaborators.isNotEmpty() || note.isLocked || (!isLockedAndProtected && note.urlPreviews.isNotEmpty())) {
                 Spacer(modifier = Modifier.height(10.dp))
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -213,6 +231,25 @@ fun NoteCard(
                         )
                     }
 
+                    if (!isLockedAndProtected) {
+                        note.urlPreviews.forEach { preview ->
+                            SuggestionChip(
+                                onClick = {},
+                                label = { Text(preview.domain.ifBlank { "Enlace" }, fontSize = 11.sp, maxLines = 1) },
+                                icon = {
+                                    Icon(
+                                        imageVector = Icons.Default.Language,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(12.dp)
+                                    )
+                                },
+                                colors = SuggestionChipDefaults.suggestionChipColors(
+                                    containerColor = if (isDark) Color(0x33A8C7FA) else Color(0x1F0B57D0)
+                                )
+                            )
+                        }
+                    }
+
                     note.labels.forEach { label ->
                         SuggestionChip(
                             onClick = {},
@@ -226,4 +263,5 @@ fun NoteCard(
             }
         }
     }
+}
 }

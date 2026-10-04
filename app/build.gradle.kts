@@ -87,6 +87,10 @@ dependencies {
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.androidx.navigation.compose)
 
+    // Image & GIF loading
+    implementation(libs.coil.compose)
+    implementation(libs.coil.gif)
+
     // Security & Biometrics
     implementation(libs.androidx.biometric)
     implementation(libs.androidx.security.crypto)

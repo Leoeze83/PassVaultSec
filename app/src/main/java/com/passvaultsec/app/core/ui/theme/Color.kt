@@ -48,6 +48,20 @@ val KeepNoteColors = listOf(
     NoteSand
 )
 
+// Paleta de colores para selección manual de texto
+val KeepTextColors = listOf(
+    0L, // 0L representa "Automático" (calcula contraste por luminancia)
+    0xFF000000, // Negro puro
+    0xFFFFFFFF, // Blanco puro
+    0xFF202124, // Carbón / Gris oscuro
+    0xFFF1F3F4, // Gris claro / Nieve
+    0xFF1A73E8, // Azul Google
+    0xFFD93025, // Rojo carmesí
+    0xFF1E8E3E, // Verde bosque
+    0xFF9334E6, // Púrpura intenso
+    0xFFE37400  // Ámbar / Naranja
+)
+
 /**
  * Convierte un color de nota guardado (en formato Long ARGB)
  * a su tono correspondiente adaptado a Modo Oscuro o Modo Claro.
@@ -73,11 +87,40 @@ fun getAdaptiveNoteColor(rawColor: Long, isDark: Boolean): Color {
 
 /**
  * Determina el color de texto contrastado según el modo y color de nota.
+ * Si el usuario eligió un color de texto manual (customTextColor != null), se respeta.
+ * Si no, calcula automáticamente el contraste óptimo por luminancia WCAG.
  */
-fun getAdaptiveNoteTextColor(rawColor: Long, isDark: Boolean): Color {
-    return if (isDark) {
-        Color(0xFFE8EAED)
-    } else {
-        Color(0xFF202124)
+fun getAdaptiveNoteTextColor(
+    rawNoteColor: Long,
+    isDark: Boolean,
+    customTextColor: Long? = null
+): Color {
+    if (customTextColor != null && customTextColor != 0L) {
+        return Color(customTextColor)
     }
+
+    val noteColor = getAdaptiveNoteColor(rawNoteColor, isDark)
+    // Fórmula de luminancia relativa estándar ITU-R BT.709
+    val r = noteColor.red
+    val g = noteColor.green
+    val b = noteColor.blue
+    val luminance = 0.2126f * r + 0.7152f * g + 0.0722f * b
+
+    return if (luminance > 0.42f) {
+        Color(0xFF202124) // Texto oscuro para fondos claros
+    } else {
+        Color(0xFFF1F3F4) // Texto claro para fondos oscuros
+    }
+}
+
+/**
+ * Determina el color secundario (placeholders, subtítulos) contrastado.
+ */
+fun getAdaptiveSecondaryTextColor(
+    rawNoteColor: Long,
+    isDark: Boolean,
+    customTextColor: Long? = null
+): Color {
+    val mainTextColor = getAdaptiveNoteTextColor(rawNoteColor, isDark, customTextColor)
+    return mainTextColor.copy(alpha = 0.65f)
 }
