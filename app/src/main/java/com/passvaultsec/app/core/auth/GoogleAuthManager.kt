@@ -2,10 +2,13 @@ package com.passvaultsec.app.core.auth
 
 import android.app.Activity
 import android.content.Context
+import android.util.Log
 import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.GetCredentialResponse
+import androidx.credentials.exceptions.GetCredentialCancellationException
+import androidx.credentials.exceptions.NoCredentialException
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.firebase.auth.FirebaseAuth
@@ -24,6 +27,10 @@ class GoogleAuthManager(
     private val context: Context,
     private val serverClientId: String = BuildConfig.WEB_CLIENT_ID
 ) {
+    companion object {
+        private const val TAG = "GoogleAuthManager"
+    }
+
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
     private val credentialManager: CredentialManager = CredentialManager.create(context)
 
@@ -41,6 +48,13 @@ class GoogleAuthManager(
      */
     suspend fun signInWithGoogle(activity: Activity): Result<FirebaseUser> {
         return try {
+            Log.d(TAG, "Iniciando signInWithGoogle con serverClientId: $serverClientId")
+            if (serverClientId.isBlank()) {
+                val error = "WEB_CLIENT_ID no configurado en secrets.properties"
+                Log.e(TAG, error)
+                return Result.failure(IllegalStateException(error))
+            }
+
             val googleIdOption = GetGoogleIdOption.Builder()
                 .setFilterByAuthorizedAccounts(false)
                 .setServerClientId(serverClientId)
@@ -65,11 +79,21 @@ class GoogleAuthManager(
                 val authResult = auth.signInWithCredential(authCredential).await()
                 val user = authResult.user ?: throw IllegalStateException("Usuario nulo tras autenticación")
                 _currentUser.value = user
+                Log.i(TAG, "Autenticación exitosa con Firebase para: ${user.email}")
                 Result.success(user)
             } else {
-                Result.failure(IllegalStateException("Tipo de credencial no soportado"))
+                val error = "Tipo de credencial no soportado: ${credential.type}"
+                Log.e(TAG, error)
+                Result.failure(IllegalStateException(error))
             }
+        } catch (e: GetCredentialCancellationException) {
+            Log.w(TAG, "El usuario canceló la selección de cuenta de Google")
+            Result.failure(Exception("Inicio de sesión cancelado"))
+        } catch (e: NoCredentialException) {
+            Log.e(TAG, "No se encontraron credenciales válidas", e)
+            Result.failure(Exception("No se encontró cuenta de Google o falta registrar la huella SHA-1 en Firebase Console"))
         } catch (e: Exception) {
+            Log.e(TAG, "Error durante signInWithGoogle: ${e.message}", e)
             Result.failure(e)
         }
     }

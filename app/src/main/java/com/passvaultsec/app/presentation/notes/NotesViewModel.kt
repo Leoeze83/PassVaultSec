@@ -23,7 +23,6 @@ data class NotesUiState(
     val searchQuery: String = "",
     val activeFilter: NotesFilter = NotesFilter.ALL,
     val isGridLayout: Boolean = true,
-    val unlockedNoteIds: Set<String> = emptySet(),
     val errorMessage: String? = null
 )
 
@@ -73,12 +72,6 @@ class NotesViewModel(
 
     fun toggleLayout() {
         _uiState.value = _uiState.value.copy(isGridLayout = !_uiState.value.isGridLayout)
-    }
-
-    fun markNoteUnlocked(noteId: String) {
-        _uiState.value = _uiState.value.copy(
-            unlockedNoteIds = _uiState.value.unlockedNoteIds + noteId
-        )
     }
 
     fun togglePin(note: Note) {

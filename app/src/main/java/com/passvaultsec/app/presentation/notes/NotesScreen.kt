@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -39,6 +40,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.FragmentActivity
 import com.passvaultsec.app.core.security.BiometricAuthManager
+import com.passvaultsec.app.core.ui.theme.AppThemeMode
+import com.passvaultsec.app.core.ui.util.findFragmentActivity
 import com.passvaultsec.app.domain.model.Note
 import com.passvaultsec.app.presentation.notes.components.NoteCard
 import com.passvaultsec.app.presentation.notes.components.SearchAndFilterBar
@@ -48,6 +51,8 @@ fun NotesScreen(
     viewModel: NotesViewModel,
     biometricAuthManager: BiometricAuthManager,
     currentUserEmail: String,
+    themeMode: AppThemeMode,
+    onToggleTheme: () -> Unit,
     onNavigateToEditor: (noteId: String?, isChecklist: Boolean) -> Unit,
     onProfileClick: () -> Unit
 ) {
@@ -59,15 +64,14 @@ fun NotesScreen(
     val unpinnedNotes = notes.filter { !it.isPinned }
 
     val handleNoteClick: (Note) -> Unit = { note ->
-        if (note.isLocked && !uiState.unlockedNoteIds.contains(note.id)) {
-            val activity = context as? FragmentActivity
+        if (note.isLocked) {
+            val activity = context.findFragmentActivity()
             if (activity != null && biometricAuthManager.canAuthenticate()) {
                 biometricAuthManager.authenticate(
                     activity = activity,
                     title = "Desbloquear Nota Segura",
                     subtitle = "Usa tu huella dactilar o PIN para ver el contenido cifrado",
                     onSuccess = {
-                        viewModel.markNoteUnlocked(note.id)
                         onNavigateToEditor(note.id, note.isChecklist)
                     },
                     onError = { _, errString ->
@@ -92,11 +96,14 @@ fun NotesScreen(
                 isGridLayout = uiState.isGridLayout,
                 onToggleLayout = viewModel::toggleLayout,
                 userEmail = currentUserEmail,
-                onProfileClick = onProfileClick
+                onProfileClick = onProfileClick,
+                themeMode = themeMode,
+                onToggleTheme = onToggleTheme
             )
         },
         floatingActionButton = {
             Row(
+                modifier = Modifier.navigationBarsPadding(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -133,19 +140,19 @@ fun NotesScreen(
                     Icon(
                         imageVector = Icons.Default.NoteAlt,
                         contentDescription = null,
-                        tint = Color.LightGray,
+                        tint = MaterialTheme.colorScheme.outlineVariant,
                         modifier = Modifier.size(80.dp)
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
                         text = "No tienes notas aquí",
                         style = MaterialTheme.typography.titleMedium,
-                        color = Color.Gray
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
                         text = "Toca '+' para crear una nota segura",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = Color.LightGray,
+                        color = MaterialTheme.colorScheme.outline,
                         modifier = Modifier.padding(top = 4.dp)
                     )
                 }
@@ -172,7 +179,7 @@ fun NotesScreen(
                         items(pinnedNotes, key = { it.id }) { note ->
                             NoteCard(
                                 note = note,
-                                isUnlocked = uiState.unlockedNoteIds.contains(note.id),
+                                isUnlocked = false,
                                 onClick = { handleNoteClick(note) },
                                 onTogglePin = { viewModel.togglePin(note) }
                             )
@@ -195,7 +202,7 @@ fun NotesScreen(
                         items(unpinnedNotes, key = { it.id }) { note ->
                             NoteCard(
                                 note = note,
-                                isUnlocked = uiState.unlockedNoteIds.contains(note.id),
+                                isUnlocked = false,
                                 onClick = { handleNoteClick(note) },
                                 onTogglePin = { viewModel.togglePin(note) }
                             )
@@ -222,7 +229,7 @@ fun NotesScreen(
                         items(pinnedNotes, key = { it.id }) { note ->
                             NoteCard(
                                 note = note,
-                                isUnlocked = uiState.unlockedNoteIds.contains(note.id),
+                                isUnlocked = false,
                                 onClick = { handleNoteClick(note) },
                                 onTogglePin = { viewModel.togglePin(note) }
                             )
@@ -245,7 +252,7 @@ fun NotesScreen(
                         items(unpinnedNotes, key = { it.id }) { note ->
                             NoteCard(
                                 note = note,
-                                isUnlocked = uiState.unlockedNoteIds.contains(note.id),
+                                isUnlocked = false,
                                 onClick = { handleNoteClick(note) },
                                 onTogglePin = { viewModel.togglePin(note) }
                             )

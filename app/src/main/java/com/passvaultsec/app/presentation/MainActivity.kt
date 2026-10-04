@@ -40,7 +40,9 @@ class MainActivity : FragmentActivity() {
         val authManager = app.authManager
 
         setContent {
-            PassVaultSecTheme {
+            val themeMode by app.themeManager.themeMode.collectAsState()
+
+            PassVaultSecTheme(themeMode = themeMode) {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     val navController = rememberNavController()
                     var isAccountDialogOpen by remember { mutableStateOf(false) }
@@ -67,6 +69,8 @@ class MainActivity : FragmentActivity() {
                                 viewModel = notesViewModel,
                                 biometricAuthManager = biometricAuthManager,
                                 currentUserEmail = authState.user?.email.orEmpty(),
+                                themeMode = themeMode,
+                                onToggleTheme = { app.themeManager.toggleTheme() },
                                 onNavigateToEditor = { noteId, isChecklist ->
                                     val destination = if (noteId != null) {
                                         "editor/$noteId?isChecklist=$isChecklist"
@@ -76,6 +80,7 @@ class MainActivity : FragmentActivity() {
                                     navController.navigate(destination)
                                 },
                                 onProfileClick = {
+                                    authViewModel.clearError()
                                     isAccountDialogOpen = true
                                 }
                             )
@@ -123,18 +128,24 @@ class MainActivity : FragmentActivity() {
                         }
                     }
 
-                    // Diálogo de Cuenta Google
+                    // Diálogo de Cuenta Google y Configuración
                     if (isAccountDialogOpen) {
                         AccountDialog(
                             user = authState.user,
                             isLoading = authState.isLoading,
-                            onSignIn = { activity ->
-                                authViewModel.signInWithGoogle(activity)
+                            errorMessage = authState.errorMessage,
+                            currentThemeMode = themeMode,
+                            onThemeModeSelected = { selectedMode ->
+                                app.themeManager.setThemeMode(selectedMode)
+                            },
+                            onSignIn = {
+                                authViewModel.signInWithGoogle(this@MainActivity)
                             },
                             onSignOut = {
                                 authViewModel.signOut()
                             },
                             onDismiss = {
+                                authViewModel.clearError()
                                 isAccountDialogOpen = false
                             }
                         )

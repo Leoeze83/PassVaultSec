@@ -36,7 +36,9 @@ fun ChecklistSection(
     onItemDelete: (index: Int) -> Unit,
     onAddItem: () -> Unit,
     canEdit: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    textColor: Color = MaterialTheme.colorScheme.onSurface,
+    secondaryTextColor: Color = MaterialTheme.colorScheme.onSurfaceVariant
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
         items.forEachIndexed { index, item ->
@@ -54,8 +56,9 @@ fun ChecklistSection(
                         }
                     },
                     colors = CheckboxDefaults.colors(
-                        checkedColor = Color.DarkGray,
-                        uncheckedColor = Color.Black.copy(alpha = 0.6f)
+                        checkedColor = secondaryTextColor,
+                        uncheckedColor = textColor.copy(alpha = 0.6f),
+                        checkmarkColor = MaterialTheme.colorScheme.surface
                     )
                 )
 
@@ -66,10 +69,15 @@ fun ChecklistSection(
                             onItemChange(index, item.copy(text = newText))
                         }
                     },
-                    placeholder = { Text("Elemento de lista") },
+                    placeholder = {
+                        Text(
+                            text = "Elemento de lista",
+                            color = secondaryTextColor.copy(alpha = 0.6f)
+                        )
+                    },
                     textStyle = TextStyle(
                         textDecoration = if (item.isDone) TextDecoration.LineThrough else null,
-                        color = if (item.isDone) Color.Gray else Color.Black.copy(alpha = 0.87f),
+                        color = if (item.isDone) secondaryTextColor else textColor,
                         fontSize = 15.sp
                     ),
                     modifier = Modifier.weight(1f),
@@ -90,7 +98,7 @@ fun ChecklistSection(
                         Icon(
                             imageVector = Icons.Default.Close,
                             contentDescription = "Eliminar elemento",
-                            tint = Color.Gray,
+                            tint = secondaryTextColor,
                             modifier = Modifier.size(18.dp)
                         )
                     }
@@ -110,14 +118,14 @@ fun ChecklistSection(
                 Icon(
                     imageVector = Icons.Default.Add,
                     contentDescription = "Añadir elemento",
-                    tint = Color.DarkGray,
+                    tint = secondaryTextColor,
                     modifier = Modifier.size(20.dp)
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
                     text = "Elemento de lista",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color.DarkGray
+                    color = secondaryTextColor
                 )
             }
         }

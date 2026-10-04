@@ -54,7 +54,11 @@ class AuthViewModel(
 
     fun signOut() {
         authManager.signOut()
-        _uiState.value = _uiState.value.copy(user = null)
+        _uiState.value = _uiState.value.copy(user = null, errorMessage = null)
+    }
+
+    fun clearError() {
+        _uiState.value = _uiState.value.copy(errorMessage = null)
     }
 
     class Factory(

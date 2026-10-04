@@ -2,6 +2,7 @@ package com.passvaultsec.app.presentation.notes.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -33,23 +34,29 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.passvaultsec.app.core.ui.theme.getAdaptiveNoteColor
+import com.passvaultsec.app.core.ui.theme.getAdaptiveNoteTextColor
 import com.passvaultsec.app.domain.model.Note
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun NoteCard(
     note: Note,
-    isUnlocked: Boolean,
+    isUnlocked: Boolean = false,
     onClick: () -> Unit,
     onTogglePin: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val cardColor = Color(note.color)
+    val isDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
+    val cardColor = getAdaptiveNoteColor(note.color, isDark)
+    val textColor = getAdaptiveNoteTextColor(note.color, isDark)
+    val secondaryTextColor = if (isDark) Color(0xFF9AA0A6) else Color(0xFF5F6368)
     val isLockedAndProtected = note.isLocked && !isUnlocked
 
     Card(
@@ -58,7 +65,7 @@ fun NoteCard(
             .clickable { onClick() },
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(containerColor = cardColor),
-        border = BorderStroke(1.dp, Color(0x1F000000)),
+        border = BorderStroke(1.dp, if (isDark) Color(0x33FFFFFF) else Color(0x1F000000)),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Column(
@@ -76,7 +83,7 @@ fun NoteCard(
                     text = if (isLockedAndProtected) "Nota Protegida" else note.title.ifEmpty { "Sin título" },
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = Color.Black.copy(alpha = 0.87f),
+                    color = textColor.copy(alpha = 0.95f),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f)
@@ -89,7 +96,7 @@ fun NoteCard(
                     Icon(
                         imageVector = if (note.isPinned) Icons.Filled.PushPin else Icons.Outlined.PushPin,
                         contentDescription = "Fijar nota",
-                        tint = if (note.isPinned) Color.Black else Color.Gray,
+                        tint = if (note.isPinned) MaterialTheme.colorScheme.primary else secondaryTextColor,
                         modifier = Modifier.size(18.dp)
                     )
                 }
@@ -113,7 +120,7 @@ fun NoteCard(
                     Text(
                         text = "Requiere huella o PIN para desbloquear",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = Color.DarkGray,
+                        color = secondaryTextColor,
                         fontSize = 13.sp
                     )
                 }
@@ -127,7 +134,7 @@ fun NoteCard(
                             Icon(
                                 imageVector = if (item.isDone) Icons.Default.CheckBox else Icons.Default.CheckBoxOutlineBlank,
                                 contentDescription = null,
-                                tint = if (item.isDone) Color.Gray else Color.Black.copy(alpha = 0.7f),
+                                tint = if (item.isDone) secondaryTextColor else textColor.copy(alpha = 0.75f),
                                 modifier = Modifier.size(16.dp)
                             )
                             Spacer(modifier = Modifier.width(6.dp))
@@ -135,7 +142,7 @@ fun NoteCard(
                                 text = item.text,
                                 style = MaterialTheme.typography.bodyMedium,
                                 textDecoration = if (item.isDone) TextDecoration.LineThrough else null,
-                                color = if (item.isDone) Color.Gray else Color.Black.copy(alpha = 0.8f),
+                                color = if (item.isDone) secondaryTextColor else textColor.copy(alpha = 0.85f),
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
@@ -145,7 +152,7 @@ fun NoteCard(
                         Text(
                             text = "+ ${note.checklistItems.size - 4} elementos más",
                             style = MaterialTheme.typography.labelSmall,
-                            color = Color.Gray,
+                            color = secondaryTextColor,
                             modifier = Modifier.padding(top = 4.dp)
                         )
                     }
@@ -153,7 +160,7 @@ fun NoteCard(
                     Text(
                         text = note.content,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = Color.Black.copy(alpha = 0.75f),
+                        color = textColor.copy(alpha = 0.82f),
                         maxLines = 6,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -179,7 +186,7 @@ fun NoteCard(
                                 )
                             },
                             colors = SuggestionChipDefaults.suggestionChipColors(
-                                containerColor = Color(0x1F000000)
+                                containerColor = if (isDark) Color(0x33A8C7FA) else Color(0x1F0B57D0)
                             )
                         )
                     }
@@ -187,16 +194,21 @@ fun NoteCard(
                     if (note.collaborators.isNotEmpty()) {
                         SuggestionChip(
                             onClick = {},
-                            label = { Text("${note.collaborators.size}", fontSize = 11.sp) },
+                            label = {
+                                Text(
+                                    text = "${note.collaborators.size} colab.",
+                                    fontSize = 11.sp
+                                )
+                            },
                             icon = {
                                 Icon(
                                     imageVector = Icons.Default.People,
                                     contentDescription = null,
-                                    modifier = Modifier.size(14.dp)
+                                    modifier = Modifier.size(12.dp)
                                 )
                             },
                             colors = SuggestionChipDefaults.suggestionChipColors(
-                                containerColor = Color(0x1F000000)
+                                containerColor = if (isDark) Color(0x33C2E7FF) else Color(0x1F00639B)
                             )
                         )
                     }
@@ -206,7 +218,7 @@ fun NoteCard(
                             onClick = {},
                             label = { Text(label, fontSize = 11.sp) },
                             colors = SuggestionChipDefaults.suggestionChipColors(
-                                containerColor = Color(0x14000000)
+                                containerColor = if (isDark) Color(0x22FFFFFF) else Color(0x11000000)
                             )
                         )
                     }

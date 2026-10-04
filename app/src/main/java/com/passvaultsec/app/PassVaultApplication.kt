@@ -29,6 +29,9 @@ class PassVaultApplication : Application() {
     lateinit var noteRepository: NoteRepository
         private set
 
+    lateinit var themeManager: com.passvaultsec.app.core.ui.theme.ThemeManager
+        private set
+
     override fun onCreate() {
         super.onCreate()
         instance = this
@@ -38,6 +41,7 @@ class PassVaultApplication : Application() {
         biometricAuthManager = BiometricAuthManager(this)
         authManager = GoogleAuthManager(this)
         firestoreService = FirestoreService()
+        themeManager = com.passvaultsec.app.core.ui.theme.ThemeManager.getInstance(this)
         noteRepository = NoteRepositoryImpl(
             noteDao = database.noteDao(),
             firestoreService = firestoreService,
