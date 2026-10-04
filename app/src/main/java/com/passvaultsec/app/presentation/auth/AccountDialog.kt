@@ -19,6 +19,8 @@ import androidx.compose.material.icons.filled.BrightnessAuto
 import androidx.compose.material.icons.filled.CloudDone
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material.icons.filled.FileDownload
+import androidx.compose.material.icons.filled.FileUpload
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.AlertDialog
@@ -53,6 +55,8 @@ fun AccountDialog(
     onThemeModeSelected: (AppThemeMode) -> Unit,
     onSignIn: () -> Unit,
     onSignOut: () -> Unit,
+    onExportBackup: (() -> Unit)? = null,
+    onImportBackup: (() -> Unit)? = null,
     onDismiss: () -> Unit
 ) {
     AlertDialog(
@@ -230,6 +234,51 @@ fun AccountDialog(
                         onClick = { onThemeModeSelected(AppThemeMode.DARK) },
                         modifier = Modifier.weight(1f)
                     )
+                }
+
+                HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+
+                // SECCIÓN 3: COPIAS DE SEGURIDAD CIFRADAS (.PVS)
+                Text(
+                    text = "Copia de Seguridad (.pvs)",
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Start
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    OutlinedButton(
+                        onClick = { onExportBackup?.invoke() },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.FileDownload,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Exportar", fontSize = 12.sp)
+                    }
+
+                    OutlinedButton(
+                        onClick = { onImportBackup?.invoke() },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.FileUpload,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Restaurar", fontSize = 12.sp)
+                    }
                 }
             }
         },

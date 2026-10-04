@@ -56,4 +56,16 @@ class Converters {
         val type = object : TypeToken<List<com.passvaultsec.app.domain.model.UrlPreview>>() {}.type
         return gson.fromJson(json, type) ?: emptyList()
     }
+
+    @TypeConverter
+    fun fromNoteLocation(location: com.passvaultsec.app.domain.model.NoteLocation?): String? {
+        if (location == null) return null
+        return gson.toJson(location)
+    }
+
+    @TypeConverter
+    fun toNoteLocation(json: String?): com.passvaultsec.app.domain.model.NoteLocation? {
+        if (json.isNullOrEmpty()) return null
+        return gson.fromJson(json, com.passvaultsec.app.domain.model.NoteLocation::class.java)
+    }
 }

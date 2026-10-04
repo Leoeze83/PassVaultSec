@@ -32,6 +32,7 @@ import androidx.compose.material.icons.filled.FormatColorText
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.LockOpen
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Mood
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PersonAdd
@@ -136,6 +137,33 @@ fun NoteEditorScreen(
                     Toast.makeText(context, "Error al importar imagen: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
             }
+        }
+    }
+
+    val locationHelper = remember { com.passvaultsec.app.core.ui.util.LocationHelper(context) }
+    val fetchLocation = {
+        viewModel.setLocationLoading(true)
+        coroutineScope.launch {
+            val result = locationHelper.getCurrentNoteLocation()
+            result.onSuccess { loc ->
+                viewModel.setLocation(loc)
+                Toast.makeText(context, "Ubicación agregada: ${loc.placeName}", Toast.LENGTH_SHORT).show()
+            }.onFailure { err ->
+                viewModel.setLocationLoading(false)
+                Toast.makeText(context, "Error de ubicación: ${err.message}", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    val locationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val granted = permissions[android.Manifest.permission.ACCESS_FINE_LOCATION] == true ||
+                permissions[android.Manifest.permission.ACCESS_COARSE_LOCATION] == true
+        if (granted) {
+            fetchLocation()
+        } else {
+            Toast.makeText(context, "Permiso de ubicación denegado", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -333,6 +361,33 @@ fun NoteEditorScreen(
                     ) {
                         Icon(Icons.Default.AddLink, contentDescription = "Insertar enlace web", tint = iconTint)
                     }
+
+                    // Ubicación geográfica real con Google Maps
+                    IconButton(
+                        onClick = {
+                            if (locationHelper.hasLocationPermission()) {
+                                fetchLocation()
+                            } else {
+                                locationPermissionLauncher.launch(
+                                    arrayOf(
+                                        android.Manifest.permission.ACCESS_FINE_LOCATION,
+                                        android.Manifest.permission.ACCESS_COARSE_LOCATION
+                                    )
+                                )
+                            }
+                        },
+                        enabled = uiState.canEdit && !uiState.isLocationLoading
+                    ) {
+                        if (uiState.isLocationLoading) {
+                            CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+                        } else {
+                            Icon(
+                                imageVector = Icons.Default.LocationOn,
+                                contentDescription = "Ubicación GPS",
+                                tint = if (note.location != null) Color(0xFFEA4335) else iconTint
+                            )
+                        }
+                    }
                 }
             }
         },
@@ -427,6 +482,20 @@ fun NoteEditorScreen(
                             onRemove = if (uiState.canEdit) { { viewModel.onRemoveUrlPreview(index) } } else null
                         )
                     }
+                }
+            }
+
+            // Previsualización de ubicación de Google Maps
+            if (note.location != null) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 6.dp)
+                ) {
+                    com.passvaultsec.app.presentation.editor.components.LocationPreviewCard(
+                        location = note.location,
+                        onRemove = if (uiState.canEdit) { { viewModel.setLocation(null) } } else null
+                    )
                 }
             }
 
@@ -525,11 +594,36 @@ fun NoteEditorScreen(
             ownerEmail = note.ownerEmail.ifEmpty { currentUserEmail },
             collaborators = note.collaborators,
             isOwner = isOwner,
+            noteTitle = note.title,
             onAddCollaborator = { email, role ->
                 viewModel.addCollaborator(email, role)
             },
             onRemoveCollaborator = { email ->
                 viewModel.removeCollaborator(email)
+            },
+            onInviteViaApp = { email, role ->
+                val roleDesc = if (role == com.passvaultsec.app.domain.model.CollaboratorRole.EDITOR) "Editor (Lectura y Escritura)" else "Lector (Solo Lectura)"
+                val sendIntent = android.content.Intent().apply {
+                    action = android.content.Intent.ACTION_SEND
+                    putExtra(android.content.Intent.EXTRA_EMAIL, arrayOf(email))
+                    putExtra(android.content.Intent.EXTRA_SUBJECT, "Invitación para colaborar en PassVaultSec")
+                    putExtra(
+                        android.content.Intent.EXTRA_TEXT,
+                        "👋 ¡Hola!\n\nTe he invitado a colaborar en la nota '${note.title.ifBlank { "Sin título" }}' en PassVaultSec con permisos de $roleDesc.\n\nAbre la aplicación para sincronizarla automáticamente en tu dispositivo."
+                    )
+                    type = "text/plain"
+                }
+                context.startActivity(android.content.Intent.createChooser(sendIntent, "Enviar invitación a $email"))
+            },
+            onShareEncryptedLink = {
+                val (secureLink, passphrase) = com.passvaultsec.app.core.security.EncryptedShareManager.createEncryptedSharePackage(note)
+                com.passvaultsec.app.core.security.EncryptedShareManager.launchShareIntent(
+                    context = context,
+                    noteTitle = note.title.ifBlank { "Sin título" },
+                    secureLink = secureLink,
+                    passphrase = passphrase,
+                    hoursValid = 24
+                )
             },
             onDismiss = { viewModel.setCollaboratorDialogOpen(false) }
         )

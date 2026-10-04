@@ -30,8 +30,8 @@ android {
         applicationId = "com.passvaultsec.app"
         minSdk = 33
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 2
+        versionName = "1.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -115,6 +115,12 @@ dependencies {
     implementation(libs.kotlinx.coroutines.play.services)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.google.gson)
+
+    // WorkManager & Background Sync
+    implementation(libs.androidx.work.runtime.ktx)
+
+    // Google Play Services Location
+    implementation(libs.play.services.location)
 
     // Testing
     testImplementation(libs.junit)

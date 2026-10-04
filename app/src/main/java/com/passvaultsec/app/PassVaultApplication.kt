@@ -48,6 +48,10 @@ class PassVaultApplication : Application() {
             cryptoManager = cryptoManager,
             authManager = authManager
         )
+
+        // Inicializar canales de notificación y tareas en segundo plano
+        com.passvaultsec.app.core.ui.util.NotificationHelper.createNotificationChannels(this)
+        com.passvaultsec.app.core.sync.SyncManager.schedulePeriodicSync(this)
     }
 
     companion object {

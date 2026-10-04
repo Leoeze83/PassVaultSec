@@ -15,7 +15,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.PersonAdd
+import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
@@ -26,6 +29,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Text
@@ -50,8 +54,11 @@ fun CollaboratorsDialog(
     ownerEmail: String,
     collaborators: Map<String, Collaborator>,
     isOwner: Boolean,
+    noteTitle: String = "",
     onAddCollaborator: (email: String, role: CollaboratorRole) -> Unit,
     onRemoveCollaborator: (email: String) -> Unit,
+    onInviteViaApp: ((email: String, role: CollaboratorRole) -> Unit)? = null,
+    onShareEncryptedLink: (() -> Unit)? = null,
     onDismiss: () -> Unit
 ) {
     var emailInput by remember { mutableStateOf("") }
@@ -216,17 +223,61 @@ fun CollaboratorsDialog(
 
                     Spacer(modifier = Modifier.height(10.dp))
 
-                    Button(
-                        onClick = {
-                            if (emailInput.isNotBlank() && emailInput.contains("@")) {
-                                onAddCollaborator(emailInput.trim(), selectedRole)
-                                emailInput = ""
-                            }
-                        },
+                    Row(
                         modifier = Modifier.fillMaxWidth(),
-                        enabled = emailInput.isNotBlank() && emailInput.contains("@")
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Text("Añadir colaborador")
+                        OutlinedButton(
+                            onClick = {
+                                if (emailInput.isNotBlank() && emailInput.contains("@")) {
+                                    onAddCollaborator(emailInput.trim(), selectedRole)
+                                    emailInput = ""
+                                }
+                            },
+                            modifier = Modifier.weight(1f),
+                            enabled = emailInput.isNotBlank() && emailInput.contains("@")
+                        ) {
+                            Text("Solo añadir", fontSize = 12.sp)
+                        }
+
+                        Button(
+                            onClick = {
+                                if (emailInput.isNotBlank() && emailInput.contains("@")) {
+                                    val email = emailInput.trim()
+                                    onAddCollaborator(email, selectedRole)
+                                    onInviteViaApp?.invoke(email, selectedRole)
+                                    emailInput = ""
+                                }
+                            },
+                            modifier = Modifier.weight(1.3f),
+                            enabled = emailInput.isNotBlank() && emailInput.contains("@")
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Send,
+                                contentDescription = null,
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Invitar y Notificar", fontSize = 12.sp)
+                        }
+                    }
+
+                    // Opción para compartir enlace cifrado temporal
+                    if (onShareEncryptedLink != null) {
+                        Spacer(modifier = Modifier.height(10.dp))
+                        OutlinedButton(
+                            onClick = onShareEncryptedLink,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Lock,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text("Generar Enlace Cifrado Temporal", fontSize = 12.sp)
+                        }
                     }
                 }
             }

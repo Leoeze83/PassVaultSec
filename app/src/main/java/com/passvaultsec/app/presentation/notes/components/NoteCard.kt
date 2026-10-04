@@ -41,8 +41,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.LocationOn
 import coil.compose.AsyncImage
 import com.passvaultsec.app.core.ui.theme.getAdaptiveNoteColor
 import com.passvaultsec.app.core.ui.theme.getAdaptiveNoteTextColor
@@ -58,6 +60,7 @@ fun NoteCard(
     onTogglePin: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
     val isDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
     val cardColor = getAdaptiveNoteColor(note.color, isDark)
     val textColor = getAdaptiveNoteTextColor(note.color, isDark, note.textColor)
@@ -79,6 +82,15 @@ fun NoteCard(
                 AsyncImage(
                     model = note.imageUris.first(),
                     contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(115.dp)
+                )
+            } else if (!isLockedAndProtected && note.location != null && note.location.mapSnapshotUrl.isNotEmpty()) {
+                AsyncImage(
+                    model = note.location.mapSnapshotUrl,
+                    contentDescription = "Previsualización de mapa",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -227,6 +239,38 @@ fun NoteCard(
                             },
                             colors = SuggestionChipDefaults.suggestionChipColors(
                                 containerColor = if (isDark) Color(0x33C2E7FF) else Color(0x1F00639B)
+                            )
+                        )
+                    }
+
+                    if (!isLockedAndProtected && note.location != null) {
+                        SuggestionChip(
+                            onClick = {
+                                try {
+                                    val intent = android.content.Intent(
+                                        android.content.Intent.ACTION_VIEW,
+                                        android.net.Uri.parse(note.location.toGeoUriString())
+                                    )
+                                    context.startActivity(intent)
+                                } catch (e: Exception) {
+                                    val intent = android.content.Intent(
+                                        android.content.Intent.ACTION_VIEW,
+                                        android.net.Uri.parse(note.location.toGoogleMapsUrl())
+                                    )
+                                    context.startActivity(intent)
+                                }
+                            },
+                            label = { Text(note.location.placeName.ifBlank { "Ubicación" }, fontSize = 11.sp, maxLines = 1) },
+                            icon = {
+                                Icon(
+                                    imageVector = Icons.Default.LocationOn,
+                                    contentDescription = "Ubicación",
+                                    tint = Color(0xFFEA4335),
+                                    modifier = Modifier.size(12.dp)
+                                )
+                            },
+                            colors = SuggestionChipDefaults.suggestionChipColors(
+                                containerColor = if (isDark) Color(0x33F28B82) else Color(0x1FF28B82)
                             )
                         )
                     }

@@ -5,6 +5,34 @@ A partir de la finalización del MVP, cada cierre de etapa ("terminamos una etap
 
 ---
 
+## [1.1.0] - Colaboración Moderna, Ubicación Google Maps, WorkManager y Backups Cifrados (.pvs) 🛰️
+**Fecha:** 4 de Octubre de 2026  
+**Estado:** Estable / Producción  
+**Tag Git:** `v1.1.0`  
+**Paquete:** `com.passvaultsec.app` (`PassVaultSec-debug.apk`)
+
+### ✨ Novedades y Funcionalidades Incorporadas:
+1. **Ubicación Geográfica en Tiempo Real con Google Maps**:
+   - Captura de coordenadas GPS de alta precisión con `FusedLocationProviderClient` de Google Play Services y fallback a `LocationManager`.
+   - Geocodificación inversa automática (`android.location.Geocoder`) para resolver dirección completa y nombre del lugar.
+   - Componente visual `LocationPreviewCard` con miniatura de Google Maps y leyenda destacada con el icono oficial de ubicación (`LocationOn`).
+   - Apertura directa en la aplicación de Google Maps (`geo:lat,lng?q=...`) y enlaces web de respaldo.
+   - Miniatura de mapa satelital / estático y chip interactivo de ubicación en las tarjetas del tablero general.
+2. **Colaboración Moderna y Sistema de Notificaciones al Invitado**:
+   - **Buzón Cloud de Invitaciones**: Registro automático de invitaciones en Cloud Firestore (`invitations`) al agregar un colaborador con rol de Editor o Lector.
+   - **Notificaciones Push en Android (API 33+)**: `NotificationHelper` dispara una notificación del sistema en tiempo real al teléfono del invitado avisando que ha sido incluido en una nota.
+   - **Invitación Directa por Apps Externas**: Nuevo flujo en `CollaboratorsDialog` que permite enviar una invitación formal con un toque mediante WhatsApp, Gmail, Telegram o SMS (`Intent.ACTION_SEND`).
+   - **Sincronización Automática para Invitados**: Consulta indexada por `collaboratorEmails` que sincroniza las notas compartidas en el tablero del colaborador inmediatamente.
+3. **Sincronización Offline en Segundo Plano con WorkManager**:
+   - Implementación de `SyncNotesWorker` y `SyncManager` para sincronización periódica en segundo plano cada 15 minutos bajo condiciones de conectividad a la red.
+4. **Compartir Notas mediante Enlaces Cifrados Temporales**:
+   - `EncryptedShareManager`: Cifrado efímero AES-256-GCM con caducidad programada (24 horas) y clave secreta de acceso generada aleatoriamente.
+5. **Copias de Seguridad Locales Cifradas (.pvs)**:
+   - `BackupManager`: Exportación e importación segura con cifrado AES-256-GCM y derivación de clave PBKDF2 (SHA-256) con contraseña maestra elegida por el usuario.
+   - Integración completa en el diálogo de Ajustes y Cuenta con selectores del Storage Access Framework de Android.
+
+---
+
 ## [1.0.0] - MVP Finalizado y Blindado (Cierre de Etapa 1) 🚀
 **Fecha:** 4 de Octubre de 2026  
 **Estado:** Estable / Producción MVP  

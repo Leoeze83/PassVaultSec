@@ -17,6 +17,7 @@ data class Note(
     val textColor: Long? = null, // Color de texto personalizado (null = contraste automático)
     val imageUris: List<String> = emptyList(), // Rutas locales de fotos / GIFs adjuntos
     val urlPreviews: List<UrlPreview> = emptyList(), // Vistas previas de enlaces
+    val location: NoteLocation? = null, // Ubicación geográfica real y Google Maps
     val isPinned: Boolean = false,
     val isLocked: Boolean = false,
     val isArchived: Boolean = false,
@@ -26,6 +27,11 @@ data class Note(
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis()
 ) {
+    /**
+     * Lista de correos de colaboradores para consultas indexadas en Firestore.
+     */
+    val collaboratorEmails: List<String>
+        get() = collaborators.keys.map { it.lowercase() }
     /**
      * Comprueba si un usuario dado tiene permisos de edición sobre la nota.
      */

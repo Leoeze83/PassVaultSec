@@ -10,8 +10,10 @@ import com.passvaultsec.app.domain.model.Note
 import com.passvaultsec.app.domain.repository.NoteRepository
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
@@ -172,11 +174,24 @@ class NoteRepositoryImpl(
     override suspend fun syncNotes(): Result<Unit> = withContext(ioDispatcher) {
         runCatching {
             val userId = authManager.getCurrentUserId()
+            val userEmail = authManager.getCurrentUserEmail()
             if (userId.isEmpty()) return@runCatching
 
-            firestoreService.observeOwnedNotes(userId).collect { remoteNotes ->
-                val entities = remoteNotes.map { NoteEntity.fromDomain(it) }
-                noteDao.upsertNotes(entities)
+            coroutineScope {
+                launch {
+                    firestoreService.observeOwnedNotes(userId).collect { remoteNotes ->
+                        val entities = remoteNotes.map { NoteEntity.fromDomain(it) }
+                        noteDao.upsertNotes(entities)
+                    }
+                }
+                if (userEmail.isNotEmpty()) {
+                    launch {
+                        firestoreService.observeSharedNotes(userEmail).collect { sharedNotes ->
+                            val entities = sharedNotes.map { NoteEntity.fromDomain(it) }
+                            noteDao.upsertNotes(entities)
+                        }
+                    }
+                }
             }
         }
     }

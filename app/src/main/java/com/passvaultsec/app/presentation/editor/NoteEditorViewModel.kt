@@ -24,6 +24,7 @@ data class NoteEditorUiState(
     val isEmojiPickerOpen: Boolean = false,
     val isInsertUrlDialogOpen: Boolean = false,
     val isLoadingUrlPreview: Boolean = false,
+    val isLocationLoading: Boolean = false,
     val errorMessage: String? = null
 )
 
@@ -313,10 +314,22 @@ class NoteEditorViewModel(
         saveNote()
     }
 
+    fun setLocation(location: com.passvaultsec.app.domain.model.NoteLocation?) {
+        if (!_uiState.value.canEdit) return
+        _uiState.value = _uiState.value.copy(
+            note = _uiState.value.note.copy(location = location),
+            isLocationLoading = false
+        )
+    }
+
+    fun setLocationLoading(isLoading: Boolean) {
+        _uiState.value = _uiState.value.copy(isLocationLoading = isLoading)
+    }
+
     fun saveNote() {
         val currentNote = _uiState.value.note
         // Si la nota está totalmente vacía y es nueva, no guardamos basura
-        if (currentNote.title.isBlank() && currentNote.content.isBlank() && currentNote.checklistItems.isEmpty() && currentNote.imageUris.isEmpty() && currentNote.urlPreviews.isEmpty()) {
+        if (currentNote.title.isBlank() && currentNote.content.isBlank() && currentNote.checklistItems.isEmpty() && currentNote.imageUris.isEmpty() && currentNote.urlPreviews.isEmpty() && currentNote.location == null) {
             return
         }
 

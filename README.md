@@ -4,14 +4,14 @@
 [![Android](https://img.shields.io/badge/Android-13%2B%20(API%2033--35)-green.svg?logo=android)](https://developer.android.com)
 [![Jetpack Compose](https://img.shields.io/badge/UI-Jetpack%20Compose%20%2F%20Material%203-4285F4.svg?logo=jetpackcompose)](https://developer.android.com/jetpack/compose)
 [![Security](https://img.shields.io/badge/Crypto-AES--256--GCM%20%2B%20Keystore-red.svg?logo=security)](https://developer.android.com/training/articles/keystore)
-[![Version](https://img.shields.io/badge/Release-v1.0.0%20(MVP%20Finalizado)-purple.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/Release-v1.1.0-purple.svg)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/License-MIT-lightgrey.svg)](LICENSE)
 
-> **Aplicación nativa para Android 13 y posteriores (API 33+)** que combina la simplicidad, dinamismo y fluidez de un **gestor de notas visual moderno** con una **capa de seguridad militar (cifrado AES-256-GCM + Android Keystore)**, bloqueo granular por **huella dactilar o PIN** (`BiometricPrompt`) con **rebloqueo inmediato Zero-Trust**, soporte multimedia completo (fotos, cámara, GIFs, enlaces enriquecidos con OpenGraph, emojis), y la posibilidad de **compartir notas colaborativas en tiempo real** mediante Google Sign-In (Firebase Auth + Cloud Firestore).
+> **Aplicación nativa para Android 13 y posteriores (API 33+)** que combina la simplicidad, dinamismo y fluidez de un **gestor de notas visual moderno** con una **capa de seguridad militar (cifrado AES-256-GCM + Android Keystore)**, bloqueo granular por **huella dactilar o PIN** (`BiometricPrompt`) con **rebloqueo inmediato Zero-Trust**, soporte multimedia completo (fotos, cámara, GIFs, enlaces enriquecidos con OpenGraph, emojis), **ubicación geográfica real con Google Maps**, y la posibilidad de **compartir notas colaborativas en tiempo real con notificaciones automáticas** mediante Google Sign-In (Firebase Auth + Cloud Firestore).
 
 ---
 
-## 🚀 Características Principales (MVP v1.0.0)
+## 🚀 Características Principales (Versión 1.1.0)
 
 ### 1. Experiencia de Usuario Moderna, Dinámica y Enriquecida
 - **Diseño Moderno Material You / Material Design 3**: Adaptación fluida a Modo Claro, Modo Oscuro y Tema del Sistema persistido en `SharedPreferences` con `StateFlow`.
@@ -26,7 +26,11 @@
 
 ---
 
-### 2. Soporte Multimedia y Enriquecimiento de Contenido
+### 2. Soporte Multimedia, Ubicación Geográfica y Enriquecimiento
+- **Ubicación Geográfica en Tiempo Real con Google Maps**:
+  - Obtención de coordenadas GPS de alta precisión (`FusedLocationProviderClient` de Google Play Services).
+  - Geocodificación inversa automática (`Geocoder`) para obtener la dirección y nombre del lugar.
+  - Tarjeta de previsualización de mapa con leyenda destacada, icono oficial de ubicación (`LocationOn`) y apertura con un toque en la app nativa de Google Maps (`geo:lat,lng`).
 - **Captura Directa con Cámara**: Botón de cámara integrado con `FileProvider` seguro que guarda fotos en alta resolución en el sandbox privado de la app (`context.filesDir/note_images/`).
 - **Galería de Imágenes & GIFs Animados**: Integración con el Photo Picker nativo de Android 13+ y motor de renderizado acelerado por hardware **Coil 2.7.0** (`coil-compose` y `coil-gif`).
 - **Barra de Emoticones Rápidos**: Inserción inmediata de emojis frecuentes (`🔒`, `🔑`, `🛡️`, `📝`, `💡`, `📌`, `⭐`, `⚠️`, `💰`, `🏠`, `💼`, `🎯`, `🚀`, etc.) con un solo toque.
@@ -40,22 +44,27 @@
 - **Cifrado AES-256-GCM con Android Keystore**:
   - Claves criptográficas generadas y resguardadas dentro del hardware seguro (**TEE / StrongBox**) del dispositivo, garantizando que nunca queden expuestas en memoria o almacenamiento ordinario.
   - Vector de inicialización (IV) criptográfico aleatorio de 12 bytes por cada nota.
+- **Copias de Seguridad Cifradas Locales (.pvs)**:
+  - Exportación e importación segura de todas las notas respaldada por cifrado AES-256-GCM con derivación de contraseña PBKDF2 (SHA-256, 15.000 iteraciones).
+- **Compartir Notas mediante Enlaces Cifrados Temporales**:
+  - Cifrado efímero AES-256 con fecha de caducidad (24 horas) y clave secreta aleatoria para compartir notas privadas fuera de la nube.
 - **Bloqueo Granular por Nota (`BiometricPrompt`) con Rebloqueo Inmediato**:
   - Puedes proteger notas individuales con un candado.
-  - En el tablero general, las notas bloqueadas enmascaran su título como *"Nota Protegida"* y ocultan totalmente su contenido, imágenes o enlaces.
+  - En el tablero general, las notas bloqueadas enmascaran su título como *"Nota Protegida"* y ocultan totalmente su contenido, imágenes, enlaces o mapas.
   - **Rebloqueo Inmediato**: Cada acceso a una nota protegida exige huella o PIN. En cuanto el usuario sale o retrocede de la nota, esta se bloquea de inmediato sin retener credenciales en memoria.
 - **Protección contra Capturas de Pantalla (`FLAG_SECURE`)**:
   - Al abrir y editar notas confidenciales, la ventana activa `FLAG_SECURE`, impidiendo capturas de pantalla, grabaciones o fugas en el selector de aplicaciones recientes.
 
 ---
 
-### 4. Colaboración en Tiempo Real y Cuentas de Google
+### 4. Colaboración en Tiempo Real y Notificaciones al Colaborador
+- **Sistema de Notificaciones para Invitados**:
+  - Notificaciones push en tiempo real en Android (`NotificationHelper`) cuando el usuario es agregado a una nota.
+  - Invitación formal con un toque mediante WhatsApp, Gmail, Telegram o SMS usando el ShareSheet nativo de Android.
+  - Buzón de invitaciones en Firestore (`invitations`) con roles de **Editor** y **Lector**.
+- **Sincronización Automática en Segundo Plano con WorkManager**:
+  - `SyncNotesWorker` ejecuta tareas periódicas cada 15 minutos requiriendo conectividad a la red.
 - **Google Sign-In con Credential Manager**: Integración moderna en un toque para Android 13+.
-- **Sincronización Cloud Firestore**:
-  - **Propietario (*Owner*)**: Control total para añadir o remover colaboradores y eliminar la nota.
-  - **Editor**: Puede leer y modificar contenido en tiempo real.
-  - **Lector (*Viewer*)**: Acceso de solo lectura protegido contra ediciones.
-- **Reglas del Servidor (`firestore.rules`)**: Validación criptográfica de identidad y permisos en la nube.
 
 ---
 
@@ -81,8 +90,10 @@ Este repositorio está configurado bajo la regla de oro de **cero fuga de secret
 | **Build System** | Gradle 9.6.0 + Android Gradle Plugin (AGP) 9.4.1 + KSP 2.3.6 |
 | **UI & Diseño** | Jetpack Compose + Material Design 3 + Navigation Compose |
 | **Carga Multimedia** | Coil 2.7.0 (`coil-compose`, `coil-gif`) + FileProvider nativo |
-| **Criptografía** | Android Keystore + AES-256-GCM + AndroidX Biometric 1.2.0 |
-| **Persistencia Local** | Room Database 2.8.5 (Schema v2) + TypeConverters Gson (Offline-First) |
+| **Ubicación & Mapas** | Google Play Services Location (`FusedLocationProviderClient`) + Geocoder |
+| **Tareas en 2do Plano** | AndroidX WorkManager 2.9.1 (`SyncNotesWorker` Offline-First) |
+| **Criptografía** | Android Keystore + AES-256-GCM + PBKDF2 (Backups .pvs) + Biometric 1.2.0 |
+| **Persistencia Local** | Room Database 2.8.5 (Schema v3) + TypeConverters Gson (Offline-First) |
 | **Backend & Cloud** | Firebase Authentication + Cloud Firestore + Google Services Plugin |
 | **Arquitectura** | Clean Architecture (Domain, Data, Presentation) + MVVM |
 
@@ -96,17 +107,19 @@ PassVaultSec/
 │   ├── build.gradle.kts
 │   ├── google-services.json.example        # Plantilla segura de ejemplo
 │   ├── src/main/
-│   │   ├── AndroidManifest.xml             # Permisos y FileProvider
+│   │   ├── AndroidManifest.xml             # Permisos, GPS y FileProvider
 │   │   ├── java/com/passvaultsec/app/
-│   │   │   ├── PassVaultApplication.kt     # Inyección y ThemeManager
+│   │   │   ├── PassVaultApplication.kt     # Inyección, Canales de Notificación y WorkManager
 │   │   │   ├── core/
 │   │   │   │   ├── auth/GoogleAuthManager.kt        # Credential Manager + Firebase
 │   │   │   │   ├── security/CryptoManager.kt       # Motor AES-256 Keystore
-│   │   │   │   ├── security/BiometricAuthManager.kt# Biometría Huella/PIN
+│   │   │   │   ├── security/BackupManager.kt       # Backups cifrados .pvs
+│   │   │   │   ├── security/EncryptedShareManager.kt# Enlaces temporales cifrados
+│   │   │   │   ├── sync/SyncNotesWorker.kt         # WorkManager background sync
 │   │   │   │   ├── ui/theme/                       # ThemeManager, Color (WCAG) y Theme
-│   │   │   │   └── ui/util/                        # ImageStorage, Context y UrlMetadata
-│   │   │   ├── domain/model/                       # Note, ChecklistItem, UrlPreview
-│   │   │   ├── data/local/                         # Room Database, DAO y Entities
+│   │   │   │   └── ui/util/                        # LocationHelper, NotificationHelper, ImageStorage
+│   │   │   ├── domain/model/                       # Note, NoteLocation, ChecklistItem, UrlPreview
+│   │   │   ├── data/local/                         # Room Database (v3), DAO y Entities
 │   │   │   └── presentation/                       # MainActivity, NotesScreen y NoteEditorScreen
 │   │   └── res/xml/file_paths.xml                  # Rutas seguras para fotos de cámara
 ├── CHANGELOG.md                                    # Registro oficial de versiones
@@ -137,6 +150,6 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 
 El proyecto sigue una estricta política de versionado documentada en [`CHANGELOG.md`](CHANGELOG.md):
 
-* **`v1.0.0` (Actual - MVP Finalizado)**: Lanzamiento oficial del MVP con todas las características core, diseño pulido, multimedia, enlaces y seguridad auditada.
-* **`v1.1.0` (Próxima etapa)**: Sincronización en segundo plano con WorkManager y copias de seguridad locales (.pvs).
+* **`v1.1.0` (Actual - Etapa 2)**: Colaboración moderna con notificaciones en tiempo real, ubicación GPS y previsualización de Google Maps, WorkManager sync, enlaces temporales cifrados y backups locales .pvs.
+* **`v1.0.0` (MVP Finalizado)**: Lanzamiento oficial del MVP con todas las características core, diseño pulido, multimedia, enlaces y seguridad auditada.
 * **`v2.0.0` (MVP v2 - Opción B comprometida)**: Dashboard web en tiempo real con telemetría de eventos de seguridad y métricas de servidor / Cloud Firestore.
