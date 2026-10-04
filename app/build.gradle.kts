@@ -97,7 +97,7 @@ dependencies {
 
     // Credential Manager & Google Auth
     implementation(libs.androidx.credentials)
-    implementation(libs.androidx.credentials.play-services)
+    implementation(libs.androidx.credentials.play.services)
     implementation(libs.google.android.libraries.identity.googleid)
 
     // Room Database
@@ -112,7 +112,7 @@ dependencies {
 
     // Coroutines & Preferences
     implementation(libs.kotlinx.coroutines.android)
-    implementation(libs.kotlinx.coroutines.play-services)
+    implementation(libs.kotlinx.coroutines.play.services)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.google.gson)
 
