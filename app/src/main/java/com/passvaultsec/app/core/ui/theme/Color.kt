@@ -10,7 +10,7 @@ val Purple40 = Color(0xFF0B57D0)
 val PurpleGrey40 = Color(0xFF00639B)
 val Pink40 = Color(0xFF7D5260)
 
-// Paleta de notas estilo Google Keep (Modo Claro)
+// Paleta de notas dinámicas (Modo Claro)
 val NoteDefault = Color(0xFFFFFFFF)
 val NoteRed = Color(0xFFFF8A80)
 val NoteOrange = Color(0xFFFFD180)
@@ -22,7 +22,7 @@ val NotePurple = Color(0xFFEA80FC)
 val NotePink = Color(0xFFFF80AB)
 val NoteSand = Color(0xFFF5E1CE)
 
-// Paleta de notas estilo Google Keep (Modo Oscuro)
+// Paleta de notas dinámicas (Modo Oscuro)
 val NoteDarkDefault = Color(0xFF202124)
 val NoteDarkRed = Color(0xFF5C2B29)
 val NoteDarkOrange = Color(0xFF614A19)
@@ -35,7 +35,7 @@ val NoteDarkPink = Color(0xFF5B2245)
 val NoteDarkSand = Color(0xFF442F19)
 
 // Lista de colores accesibles para el selector
-val KeepNoteColors = listOf(
+val NotePaletteColors = listOf(
     NoteDefault,
     NoteRed,
     NoteOrange,
@@ -49,13 +49,13 @@ val KeepNoteColors = listOf(
 )
 
 // Paleta de colores para selección manual de texto
-val KeepTextColors = listOf(
+val NoteTextPaletteColors = listOf(
     0L, // 0L representa "Automático" (calcula contraste por luminancia)
     0xFF000000, // Negro puro
     0xFFFFFFFF, // Blanco puro
     0xFF202124, // Carbón / Gris oscuro
     0xFFF1F3F4, // Gris claro / Nieve
-    0xFF1A73E8, // Azul Google
+    0xFF1A73E8, // Azul vibrante
     0xFFD93025, // Rojo carmesí
     0xFF1E8E3E, // Verde bosque
     0xFF9334E6, // Púrpura intenso

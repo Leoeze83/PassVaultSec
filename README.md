@@ -7,18 +7,18 @@
 [![Version](https://img.shields.io/badge/Release-v1.0.0%20(MVP%20Finalizado)-purple.svg)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/License-MIT-lightgrey.svg)](LICENSE)
 
-> **Aplicación nativa para Android 13 y posteriores (API 33+)** que combina la simplicidad, dinamismo y experiencia de usuario de **Google Keep** con una **capa de seguridad militar (cifrado AES-256-GCM + Android Keystore)**, bloqueo granular por **huella dactilar o PIN** (`BiometricPrompt`) con **rebloqueo inmediato Zero-Trust**, soporte multimedia completo (fotos, cámara, GIFs, enlaces enriquecidos con OpenGraph, emojis), y la posibilidad de **compartir notas colaborativas en tiempo real** mediante Google Sign-In (Firebase Auth + Cloud Firestore).
+> **Aplicación nativa para Android 13 y posteriores (API 33+)** que combina la simplicidad, dinamismo y fluidez de un **gestor de notas visual moderno** con una **capa de seguridad militar (cifrado AES-256-GCM + Android Keystore)**, bloqueo granular por **huella dactilar o PIN** (`BiometricPrompt`) con **rebloqueo inmediato Zero-Trust**, soporte multimedia completo (fotos, cámara, GIFs, enlaces enriquecidos con OpenGraph, emojis), y la posibilidad de **compartir notas colaborativas en tiempo real** mediante Google Sign-In (Firebase Auth + Cloud Firestore).
 
 ---
 
 ## 🚀 Características Principales (MVP v1.0.0)
 
-### 1. Experiencia de Usuario estilo Google Keep Enriquecida
+### 1. Experiencia de Usuario Moderna, Dinámica y Enriquecida
 - **Diseño Moderno Material You / Material Design 3**: Adaptación fluida a Modo Claro, Modo Oscuro y Tema del Sistema persistido en `SharedPreferences` con `StateFlow`.
 - **Márgenes del Sistema Perfectos (`WindowInsets`)**: La barra de búsqueda flotante respeta la barra de estado de Android (reloj, batería, notch y red con `.statusBarsPadding()`), y los botones flotantes y teclado respetan las barras de navegación (`.navigationBarsPadding()` e `.imePadding()`).
 - **Vista Flexible**: Alterna con un toque entre **cuadrícula escalonada (*staggered grid*)** de 2 columnas o lista vertical continua.
 - **Paleta de Colores de Fondo y Contraste Automático Inteligente**:
-  - Paleta icónica Google Keep en tonos pastel para modo claro y pastel oscuro para modo oscuro.
+  - Paleta de notas en tonos pastel para modo claro y pastel oscuro para modo oscuro.
   - **Cálculo de Contraste Automático WCAG (ITU-R BT.709)**: Al cambiar el color de una nota, el texto y elementos secundarios calculan su luminancia relativa en tiempo real para ser 100% legibles en cualquier tono.
   - **Selector Manual de Color de Texto**: Paleta integrada para fijar colores específicos de texto o volver al modo automático con un toque.
 - **Notas de Texto y Listas de Verificación (*Checklists*)**: Casillas interactivas, tareas tachadas y alternancia dinámica entre texto libre y lista.

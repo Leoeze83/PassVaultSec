@@ -15,7 +15,7 @@ A partir de la finalización del MVP, cada cierre de etapa ("terminamos una etap
 1. **Contraste Automático Dinámico de Texto (Fórmula WCAG / ITU-R BT.709)**:
    - Al cambiar el color de fondo de las notas, el texto y elementos secundarios calculan automáticamente su luminancia relativa en tiempo real, garantizando máxima legibilidad sin textos ilegibles o invisibles.
 2. **Selector de Color de Texto Personalizado**:
-   - Paleta integrada en el editor (`KeepTextColors`) para fijar colores específicos de texto (Negro, Blanco, Grafito, Azul Google, Rojo, Verde, Púrpura, Ámbar) o alternar al modo automático con un toque.
+   - Paleta integrada en el editor (`NoteTextPaletteColors`) para fijar colores específicos de texto (Negro, Blanco, Grafito, Azul vibrante, Rojo, Verde, Púrpura, Ámbar) o alternar al modo automático con un toque.
 3. **Soporte Multimedia Completo (Cámara, Galería y GIFs Animados)**:
    - **Cámara Directa**: Captura de fotografías en alta resolución mediante `FileProvider` nativo en sandbox seguro (`context.filesDir/note_images/`).
    - **Galería de Imágenes & GIFs**: Integración con el Photo Picker de Android 13+ (`ActivityResultContracts.PickVisualMedia`) y renderizado acelerado por hardware con **Coil 2.7.0** (`coil-gif`).
@@ -26,7 +26,7 @@ A partir de la finalización del MVP, cada cierre de etapa ("terminamos una etap
    - Motor asíncrono `UrlMetadataExtractor` que analiza etiquetas OpenGraph (`og:title`, `og:description`, `og:image`) y genera tarjetas visuales con miniatura, dominio y enlace directo al navegador mediante `LocalUriHandler`.
 6. **Soporte Completo de Modo Claro / Modo Oscuro / Sistema**:
    - `ThemeManager` reactivo persistido en `SharedPreferences` con `StateFlow`.
-   - Paleta adaptativa estilo Google Keep en modo oscuro (tonos pastel oscuros con alto contraste).
+   - Paleta adaptativa en modo oscuro (tonos pastel oscuros con alto contraste).
    - Acceso rápido en la barra de búsqueda y selector triple en el diálogo de cuenta.
 7. **Corrección de Window Insets (Status Bar & Navigation Bar)**:
    - Barra de búsqueda ajustada con `.statusBarsPadding()` para respetar notch, reloj, batería y red.
@@ -65,7 +65,7 @@ A partir de la finalización del MVP, cada cierre de etapa ("terminamos una etap
 **Fecha:** 2 de Octubre de 2026  
 **Estado:** Superado  
 - Estructura base en Clean Architecture + MVVM.
-- UI en Jetpack Compose simulando el tablero y checklists de Google Keep.
+- UI moderna en Jetpack Compose con tablero interactivo, tarjetas dinámicas y checklists.
 - Configuración de dependencias en `libs.versions.toml`.
 
 ---

@@ -61,7 +61,7 @@ fun SearchAndFilterBar(
             .fillMaxWidth()
             .statusBarsPadding()
     ) {
-        // Barra de búsqueda flotante estilo Google Keep
+        // Barra de búsqueda flotante moderna
         Surface(
             modifier = Modifier
                 .fillMaxWidth()

@@ -22,7 +22,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
-import com.passvaultsec.app.core.ui.theme.KeepNoteColors
+import com.passvaultsec.app.core.ui.theme.NotePaletteColors
 
 @Composable
 fun ColorSelector(
@@ -38,7 +38,7 @@ fun ColorSelector(
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        KeepNoteColors.forEach { color ->
+        NotePaletteColors.forEach { color ->
             val colorLong = color.toArgb().toLong()
             val isSelected = colorLong == selectedColorLong
 

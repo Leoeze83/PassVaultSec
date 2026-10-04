@@ -157,7 +157,7 @@ fun NotesScreen(
                     )
                 }
             } else if (uiState.isGridLayout) {
-                // Vista en cuadrícula escalonada (2 columnas estilo Google Keep)
+                // Vista en cuadrícula escalonada (2 columnas de tarjetas dinámicas)
                 LazyVerticalStaggeredGrid(
                     columns = StaggeredGridCells.Fixed(2),
                     modifier = Modifier.fillMaxSize(),

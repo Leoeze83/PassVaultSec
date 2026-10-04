@@ -28,7 +28,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.passvaultsec.app.core.ui.theme.KeepTextColors
+import com.passvaultsec.app.core.ui.theme.NoteTextPaletteColors
 
 @Composable
 fun TextColorSelector(
@@ -57,7 +57,7 @@ fun TextColorSelector(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            KeepTextColors.forEach { colorValue ->
+            NoteTextPaletteColors.forEach { colorValue ->
                 val isAuto = colorValue == 0L
                 val isSelected = if (isAuto) {
                     selectedColorLong == null || selectedColorLong == 0L
