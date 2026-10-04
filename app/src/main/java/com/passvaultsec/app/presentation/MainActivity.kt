@@ -173,6 +173,7 @@ class MainActivity : FragmentActivity() {
                                 viewModel = notesViewModel,
                                 biometricAuthManager = biometricAuthManager,
                                 currentUserEmail = authState.user?.email.orEmpty(),
+                                currentUserPhotoUrl = authState.user?.photoUrl?.toString(),
                                 themeMode = themeMode,
                                 onToggleTheme = { app.themeManager.toggleTheme() },
                                 onNavigateToEditor = { noteId, isChecklist ->

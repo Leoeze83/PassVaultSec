@@ -51,6 +51,7 @@ fun NotesScreen(
     viewModel: NotesViewModel,
     biometricAuthManager: BiometricAuthManager,
     currentUserEmail: String,
+    currentUserPhotoUrl: String? = null,
     themeMode: AppThemeMode,
     onToggleTheme: () -> Unit,
     onNavigateToEditor: (noteId: String?, isChecklist: Boolean) -> Unit,
@@ -96,6 +97,7 @@ fun NotesScreen(
                 isGridLayout = uiState.isGridLayout,
                 onToggleLayout = viewModel::toggleLayout,
                 userEmail = currentUserEmail,
+                userPhotoUrl = currentUserPhotoUrl,
                 onProfileClick = onProfileClick,
                 themeMode = themeMode,
                 onToggleTheme = onToggleTheme

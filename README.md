@@ -153,3 +153,7 @@ El proyecto sigue una estricta política de versionado documentada en [`CHANGELO
 * **`v1.1.0` (Actual - Etapa 2)**: Colaboración moderna con notificaciones en tiempo real, ubicación GPS y previsualización de Google Maps, WorkManager sync, enlaces temporales cifrados y backups locales .pvs.
 * **`v1.0.0` (MVP Finalizado)**: Lanzamiento oficial del MVP con todas las características core, diseño pulido, multimedia, enlaces y seguridad auditada.
 * **`v2.0.0` (MVP v2 - Opción B comprometida)**: Dashboard web en tiempo real con telemetría de eventos de seguridad y métricas de servidor / Cloud Firestore.
+
+---
+
+> **Desarrollado por VaderLoopDev desde ARG 🇦🇷**

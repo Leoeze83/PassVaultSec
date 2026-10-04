@@ -37,8 +37,11 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import com.passvaultsec.app.core.ui.theme.AppThemeMode
 import com.passvaultsec.app.presentation.notes.NotesFilter
 
@@ -51,6 +54,7 @@ fun SearchAndFilterBar(
     isGridLayout: Boolean,
     onToggleLayout: () -> Unit,
     userEmail: String,
+    userPhotoUrl: String? = null,
     onProfileClick: () -> Unit,
     themeMode: AppThemeMode,
     onToggleTheme: () -> Unit,
@@ -147,12 +151,23 @@ fun SearchAndFilterBar(
 
                 // Avatar / Perfil Google
                 IconButton(onClick = onProfileClick) {
-                    Icon(
-                        imageVector = Icons.Default.AccountCircle,
-                        contentDescription = "Cuenta Google y Ajustes",
-                        tint = if (userEmail.isNotEmpty()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(30.dp)
-                    )
+                    if (!userPhotoUrl.isNullOrBlank()) {
+                        AsyncImage(
+                            model = userPhotoUrl,
+                            contentDescription = "Cuenta Google y Ajustes",
+                            modifier = Modifier
+                                .size(30.dp)
+                                .clip(CircleShape),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.AccountCircle,
+                            contentDescription = "Cuenta Google y Ajustes",
+                            tint = if (userEmail.isNotEmpty()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(30.dp)
+                        )
+                    }
                 }
             }
         }

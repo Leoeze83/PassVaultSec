@@ -226,13 +226,12 @@ class FirestoreService {
 
         // 2. Crear documento de invitación para notificar al colaborador
         val noteDoc = notesCollection.document(noteId).get().await()
-        val noteTitle = noteDoc.getString("title") ?: "Sin título"
         val ownerEmail = noteDoc.getString("ownerEmail") ?: ""
 
         val invitationData = mapOf(
             "id" to "${noteId}_$key",
             "noteId" to noteId,
-            "noteTitle" to noteTitle,
+            "noteTitle" to "Nota Compartida Protegida",
             "ownerEmail" to ownerEmail,
             "collaboratorEmail" to cleanEmail,
             "role" to role.value,
@@ -379,11 +378,10 @@ class FirestoreService {
             "ownerId" to note.ownerId,
             "ownerEmail" to note.ownerEmail,
             "title" to note.title,
-            "content" to note.content,
+            // PRIVACIDAD TOTAL ZERO-KNOWLEDGE: El contenido y listas permanecen 100% locales en el dispositivo
+            "content" to "",
             "isChecklist" to note.isChecklist,
-            "checklistItems" to note.checklistItems.map {
-                mapOf("id" to it.id, "text" to it.text, "isDone" to it.isDone)
-            },
+            "checklistItems" to emptyList<Map<String, Any>>(),
             "color" to note.color,
             "textColor" to note.textColor,
             "imageUris" to note.imageUris,

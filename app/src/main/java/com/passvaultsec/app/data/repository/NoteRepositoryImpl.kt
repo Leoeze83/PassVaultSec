@@ -199,14 +199,34 @@ class NoteRepositoryImpl(
 
             val ownedNotes = firestoreService.getOwnedNotes(userId).getOrDefault(emptyList())
             if (ownedNotes.isNotEmpty()) {
-                val entities = ownedNotes.map { NoteEntity.fromDomain(it) }
+                val entities = ownedNotes.map { remoteNote ->
+                    val existing = noteDao.getNoteById(remoteNote.id)
+                    val localContent = existing?.content.orEmpty()
+                    val localChecklist = existing?.checklistItems ?: emptyList()
+                    NoteEntity.fromDomain(
+                        remoteNote.copy(
+                            content = if (remoteNote.content.isNotBlank()) remoteNote.content else localContent,
+                            checklistItems = if (remoteNote.checklistItems.isNotEmpty()) remoteNote.checklistItems else localChecklist
+                        )
+                    )
+                }
                 noteDao.upsertNotes(entities)
             }
 
             if (userEmail.isNotEmpty()) {
                 val sharedNotes = firestoreService.getSharedNotes(userEmail).getOrDefault(emptyList())
                 if (sharedNotes.isNotEmpty()) {
-                    val entities = sharedNotes.map { NoteEntity.fromDomain(it) }
+                    val entities = sharedNotes.map { remoteNote ->
+                        val existing = noteDao.getNoteById(remoteNote.id)
+                        val localContent = existing?.content.orEmpty()
+                        val localChecklist = existing?.checklistItems ?: emptyList()
+                        NoteEntity.fromDomain(
+                            remoteNote.copy(
+                                content = if (remoteNote.content.isNotBlank()) remoteNote.content else localContent,
+                                checklistItems = if (remoteNote.checklistItems.isNotEmpty()) remoteNote.checklistItems else localChecklist
+                            )
+                        )
+                    }
                     noteDao.upsertNotes(entities)
                 }
             }
