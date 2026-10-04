@@ -38,6 +38,8 @@ import com.passvaultsec.app.presentation.editor.NoteEditorScreen
 import com.passvaultsec.app.presentation.editor.NoteEditorViewModel
 import com.passvaultsec.app.presentation.notes.NotesScreen
 import com.passvaultsec.app.presentation.notes.NotesViewModel
+import android.util.Log
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -122,27 +124,35 @@ class MainActivity : FragmentActivity() {
                     val notifiedInvitationIds = remember { mutableSetOf<String>() }
                     LaunchedEffect(authState.user?.email) {
                         val email = authState.user?.email.orEmpty().trim().lowercase()
-                        if (email.isNotEmpty()) {
-                            app.firestoreService.observeIncomingInvitations(email).collect { invitations ->
-                                invitations.forEach { inv ->
-                                    val id = inv["id"] as? String ?: return@forEach
-                                    val noteId = inv["noteId"] as? String ?: return@forEach
-                                    val noteTitle = inv["noteTitle"] as? String ?: "Nota Compartida"
-                                    val ownerEmail = inv["ownerEmail"] as? String ?: ""
-                                    val role = inv["role"] as? String ?: "editor"
-
-                                    if (!notifiedInvitationIds.contains(id)) {
-                                        notifiedInvitationIds.add(id)
-                                        NotificationHelper.showCollaborationInvitationNotification(
-                                            context = context,
-                                            noteId = noteId,
-                                            noteTitle = noteTitle,
-                                            ownerEmail = ownerEmail,
-                                            role = role
-                                        )
-                                        repository.syncNotes()
+                        if (email.isNotEmpty() && app.authManager.isUserSignedIn()) {
+                            try {
+                                app.firestoreService.observeIncomingInvitations(email)
+                                    .catch { e ->
+                                        Log.w("MainActivity", "Error en flujo de invitaciones: ${e.message}")
                                     }
-                                }
+                                    .collect { invitations ->
+                                        for (inv in invitations) {
+                                            val id = inv["id"] as? String ?: continue
+                                            val noteId = inv["noteId"] as? String ?: continue
+                                            val noteTitle = inv["noteTitle"] as? String ?: "Nota Compartida"
+                                            val ownerEmail = inv["ownerEmail"] as? String ?: ""
+                                            val role = inv["role"] as? String ?: "editor"
+
+                                            if (!notifiedInvitationIds.contains(id)) {
+                                                notifiedInvitationIds.add(id)
+                                                NotificationHelper.showCollaborationInvitationNotification(
+                                                    context = context,
+                                                    noteId = noteId,
+                                                    noteTitle = noteTitle,
+                                                    ownerEmail = ownerEmail,
+                                                    role = role
+                                                )
+                                                repository.syncNotes()
+                                            }
+                                        }
+                                    }
+                            } catch (e: Exception) {
+                                Log.w("MainActivity", "Excepción colectando invitaciones: ${e.message}")
                             }
                         }
                     }

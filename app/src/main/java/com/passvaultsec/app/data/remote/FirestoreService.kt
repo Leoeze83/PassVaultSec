@@ -1,5 +1,6 @@
 package com.passvaultsec.app.data.remote
 
+import android.util.Log
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
@@ -25,8 +26,13 @@ class FirestoreService {
     private val notesCollection = firestore.collection("notes")
     private val invitationsCollection = firestore.collection("invitations")
 
+    companion object {
+        private const val TAG = "FirestoreService"
+    }
+
     /**
      * Escucha en tiempo real todas las notas donde el usuario es creador.
+     * Es resiliente: ante errores de permisos o desconexión no cancela el flujo con excepción.
      */
     fun observeOwnedNotes(userId: String): Flow<List<Note>> = callbackFlow {
         if (userId.isEmpty()) {
@@ -40,7 +46,8 @@ class FirestoreService {
             .whereEqualTo("isDeleted", false)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    close(error)
+                    Log.w(TAG, "Error escuchando notas propias: ${error.message}")
+                    trySend(emptyList())
                     return@addSnapshotListener
                 }
                 val notes = snapshot?.documents?.mapNotNull { doc ->
@@ -54,6 +61,7 @@ class FirestoreService {
 
     /**
      * Escucha en tiempo real todas las notas compartidas con el usuario como colaborador.
+     * Es resiliente ante errores de red o permisos.
      */
     fun observeSharedNotes(userEmail: String): Flow<List<Note>> = callbackFlow {
         if (userEmail.isEmpty()) {
@@ -67,7 +75,8 @@ class FirestoreService {
             .whereEqualTo("isDeleted", false)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    close(error)
+                    Log.w(TAG, "Error escuchando notas compartidas: ${error.message}")
+                    trySend(emptyList())
                     return@addSnapshotListener
                 }
                 val notes = snapshot?.documents?.mapNotNull { doc ->
@@ -81,6 +90,7 @@ class FirestoreService {
 
     /**
      * Escucha invitaciones de colaboración dirigidas al correo del usuario.
+     * Resiliente para evitar cierres abruptos o caídas de la aplicación.
      */
     fun observeIncomingInvitations(userEmail: String): Flow<List<Map<String, Any>>> = callbackFlow {
         if (userEmail.isEmpty()) {
@@ -93,7 +103,8 @@ class FirestoreService {
             .whereEqualTo("collaboratorEmail", userEmail.lowercase())
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    close(error)
+                    Log.w(TAG, "Error escuchando invitaciones entrantes: ${error.message}")
+                    trySend(emptyList())
                     return@addSnapshotListener
                 }
                 val list = snapshot?.documents?.mapNotNull { doc ->
@@ -103,6 +114,32 @@ class FirestoreService {
             }
 
         awaitClose { listener.remove() }
+    }
+
+    /**
+     * Obtiene una sola vez todas las notas donde el usuario es creador.
+     */
+    suspend fun getOwnedNotes(userId: String): Result<List<Note>> = runCatching {
+        if (userId.isEmpty()) return@runCatching emptyList()
+        val snapshot = notesCollection
+            .whereEqualTo("ownerId", userId)
+            .whereEqualTo("isDeleted", false)
+            .get()
+            .await()
+        snapshot.documents.mapNotNull { doc -> mapDocumentToNote(doc.id, doc.data) }
+    }
+
+    /**
+     * Obtiene una sola vez todas las notas compartidas con el usuario.
+     */
+    suspend fun getSharedNotes(userEmail: String): Result<List<Note>> = runCatching {
+        if (userEmail.isEmpty()) return@runCatching emptyList()
+        val snapshot = notesCollection
+            .whereArrayContains("collaboratorEmails", userEmail.lowercase())
+            .whereEqualTo("isDeleted", false)
+            .get()
+            .await()
+        snapshot.documents.mapNotNull { doc -> mapDocumentToNote(doc.id, doc.data) }
     }
 
     /**

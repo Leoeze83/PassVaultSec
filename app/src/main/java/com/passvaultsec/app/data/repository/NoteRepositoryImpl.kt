@@ -177,20 +177,17 @@ class NoteRepositoryImpl(
             val userEmail = authManager.getCurrentUserEmail()
             if (userId.isEmpty()) return@runCatching
 
-            coroutineScope {
-                launch {
-                    firestoreService.observeOwnedNotes(userId).collect { remoteNotes ->
-                        val entities = remoteNotes.map { NoteEntity.fromDomain(it) }
-                        noteDao.upsertNotes(entities)
-                    }
-                }
-                if (userEmail.isNotEmpty()) {
-                    launch {
-                        firestoreService.observeSharedNotes(userEmail).collect { sharedNotes ->
-                            val entities = sharedNotes.map { NoteEntity.fromDomain(it) }
-                            noteDao.upsertNotes(entities)
-                        }
-                    }
+            val ownedNotes = firestoreService.getOwnedNotes(userId).getOrDefault(emptyList())
+            if (ownedNotes.isNotEmpty()) {
+                val entities = ownedNotes.map { NoteEntity.fromDomain(it) }
+                noteDao.upsertNotes(entities)
+            }
+
+            if (userEmail.isNotEmpty()) {
+                val sharedNotes = firestoreService.getSharedNotes(userEmail).getOrDefault(emptyList())
+                if (sharedNotes.isNotEmpty()) {
+                    val entities = sharedNotes.map { NoteEntity.fromDomain(it) }
+                    noteDao.upsertNotes(entities)
                 }
             }
         }

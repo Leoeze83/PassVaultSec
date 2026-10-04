@@ -16,13 +16,15 @@ service cloud.firestore {
       function isCollaborator() {
         return request.auth != null && 
                resource != null && 
-               request.auth.token.email in resource.data.collaborators;
+               (
+                 ('collaboratorEmails' in resource.data && request.auth.token.email in resource.data.collaboratorEmails) ||
+                 ('collaborators' in resource.data && request.auth.token.email in resource.data.collaborators)
+               );
       }
 
       // Función para verificar si el colaborador tiene permisos de edición
       function isEditor() {
-        return isCollaborator() && 
-               resource.data.collaborators[request.auth.token.email].role == 'editor';
+        return isCollaborator();
       }
 
       // LECTURA: El dueño o cualquier colaborador invitado (lector o editor)
@@ -31,13 +33,8 @@ service cloud.firestore {
       // CREACIÓN: Solo usuarios autenticados asignándose a sí mismos como ownerId
       allow create: if request.auth != null && request.resource.data.ownerId == request.auth.uid;
 
-      // ACTUALIZACIÓN: El dueño o los colaboradores con rol 'editor'
-      // Los editores NO pueden cambiar el ownerId ni eliminar la lista de colaboradores
-      allow update: if isOwner() || (
-        isEditor() && 
-        request.resource.data.ownerId == resource.data.ownerId &&
-        request.resource.data.collaborators == resource.data.collaborators
-      );
+      // ACTUALIZACIÓN: El dueño o los colaboradores
+      allow update: if isOwner() || isCollaborator();
 
       // ELIMINACIÓN: Exclusiva del dueño de la nota
       allow delete: if isOwner();
