@@ -1,0 +1,52 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Regla de Notas Colaborativas y Seguras
+    match /notes/{noteId} {
+      
+      // Función para verificar si el usuario es el dueño de la nota
+      function isOwner() {
+        return request.auth != null && (
+          resource == null || resource.data.ownerId == request.auth.uid
+        );
+      }
+
+      // Función para verificar si el usuario está invitado como colaborador
+      function isCollaborator() {
+        return request.auth != null && 
+               resource != null && 
+               request.auth.token.email in resource.data.collaborators;
+      }
+
+      // Función para verificar si el colaborador tiene permisos de edición
+      function isEditor() {
+        return isCollaborator() && 
+               resource.data.collaborators[request.auth.token.email].role == 'editor';
+      }
+
+      // LECTURA: El dueño o cualquier colaborador invitado (lector o editor)
+      allow read: if isOwner() || isCollaborator();
+
+      // CREACIÓN: Solo usuarios autenticados asignándose a sí mismos como ownerId
+      allow create: if request.auth != null && request.resource.data.ownerId == request.auth.uid;
+
+      // ACTUALIZACIÓN: El dueño o los colaboradores con rol 'editor'
+      // Los editores NO pueden cambiar el ownerId ni eliminar la lista de colaboradores
+      allow update: if isOwner() || (
+        isEditor() && 
+        request.resource.data.ownerId == resource.data.ownerId &&
+        request.resource.data.collaborators == resource.data.collaborators
+      );
+
+      // ELIMINACIÓN: Exclusiva del dueño de la nota
+      allow delete: if isOwner();
+    }
+
+    // Perfiles públicos / de usuario para búsqueda de colaboradores
+    match /users/{userId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}

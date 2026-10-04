@@ -1,0 +1,24 @@
+<resources>
+    <string name="app_name">PassVaultSec</string>
+    <string name="notes_title">Notas</string>
+    <string name="search_hint">Buscar en tus notas…</string>
+    <string name="locked_note_title">Nota Protegida</string>
+    <string name="locked_note_desc">Usa tu huella dactilar o PIN para ver el contenido.</string>
+    <string name="biometric_prompt_title">Desbloquear Nota Segura</string>
+    <string name="biometric_prompt_subtitle">Autentícate para acceder al contenido cifrado</string>
+    <string name="biometric_app_lock_title">PassVaultSec Bloqueado</string>
+    <string name="biometric_app_lock_subtitle">Verifica tu identidad para ingresar a la app</string>
+    <string name="sign_in_google">Acceder con Google</string>
+    <string name="sign_out">Cerrar Sesión</string>
+    <string name="share_note">Compartir nota</string>
+    <string name="collaborators">Colaboradores</string>
+    <string name="add_collaborator">Añadir usuario por correo</string>
+    <string name="permission_editor">Editor (Lectura y Escritura)</string>
+    <string name="permission_viewer">Lector (Solo Lectura)</string>
+    <string name="save">Guardar</string>
+    <string name="delete">Eliminar</string>
+    <string name="archive">Archivar</string>
+    <string name="pin">Fijar</string>
+    <string name="lock">Proteger con huella/PIN</string>
+    <string name="unlock">Desbloquear protección</string>
+</resources>

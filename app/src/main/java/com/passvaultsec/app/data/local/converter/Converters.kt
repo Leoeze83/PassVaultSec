@@ -1,0 +1,47 @@
+package com.passvaultsec.app.data.local.converter
+
+import androidx.room.TypeConverter
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import com.passvaultsec.app.domain.model.ChecklistItem
+import com.passvaultsec.app.domain.model.Collaborator
+
+class Converters {
+    private val gson = Gson()
+
+    @TypeConverter
+    fun fromChecklistItems(items: List<ChecklistItem>?): String {
+        return gson.toJson(items ?: emptyList<ChecklistItem>())
+    }
+
+    @TypeConverter
+    fun toChecklistItems(json: String?): List<ChecklistItem> {
+        if (json.isNullOrEmpty()) return emptyList()
+        val type = object : TypeToken<List<ChecklistItem>>() {}.type
+        return gson.fromJson(json, type) ?: emptyList()
+    }
+
+    @TypeConverter
+    fun fromStringList(strings: List<String>?): String {
+        return gson.toJson(strings ?: emptyList<String>())
+    }
+
+    @TypeConverter
+    fun toStringList(json: String?): List<String> {
+        if (json.isNullOrEmpty()) return emptyList()
+        val type = object : TypeToken<List<String>>() {}.type
+        return gson.fromJson(json, type) ?: emptyList()
+    }
+
+    @TypeConverter
+    fun fromCollaboratorsMap(map: Map<String, Collaborator>?): String {
+        return gson.toJson(map ?: emptyMap<String, Collaborator>())
+    }
+
+    @TypeConverter
+    fun toCollaboratorsMap(json: String?): Map<String, Collaborator> {
+        if (json.isNullOrEmpty()) return emptyMap()
+        val type = object : TypeToken<Map<String, Collaborator>>() {}.type
+        return gson.fromJson(json, type) ?: emptyMap()
+    }
+}

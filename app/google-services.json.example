@@ -1,0 +1,35 @@
+{
+  "_comment": "PLANTILLA DE EJEMPLO: Renombra este archivo a 'google-services.json' y reemplaza con tus credenciales de Firebase Console",
+  "project_info": {
+    "project_number": "000000000000",
+    "project_id": "passvaultsec-template",
+    "storage_bucket": "passvaultsec-template.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:000000000000:android:0000000000000000",
+        "android_client_info": {
+          "package_name": "com.passvaultsec.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "YOUR_WEB_CLIENT_ID_HERE.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "YOUR_FIREBASE_API_KEY_HERE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

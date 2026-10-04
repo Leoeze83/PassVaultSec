@@ -1,0 +1,28 @@
+# Android & Gradle
+*.iml
+.gradle
+/local.properties
+local.properties
+/.idea/
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+
+# Security & Credentials Protection (CRITICAL FOR PUBLIC REPOS)
+# Nunca subir archivos de configuración real de Firebase o Google
+**/google-services.json
+google-services.json
+secrets.properties
+**/secrets.properties
+*.jks
+*.keystore
+*.key
+*.pem
+*.p8
+*.p12
+*.token
+.env*
+credentials/
+signing/
