@@ -41,11 +41,12 @@
 | Capa | Tecnologías |
 | :--- | :--- |
 | **Plataforma** | Android 13+ (`minSdk = 33`, `targetSdk = 35`, `compileSdk = 35`) |
-| **Lenguaje** | Kotlin 2.0+ con Coroutines & Flow |
-| **UI** | Jetpack Compose + Material 3 + Navigation Compose |
+| **Lenguaje y Runtime** | Kotlin 2.2.10 (JVM / Toolchain Java 21) con Coroutines & Flow |
+| **Build System** | Gradle 9.6.0 + Android Gradle Plugin (AGP) 9.4.1 + KSP 2.3.6 |
+| **UI** | Jetpack Compose + Material Design 3 + Navigation Compose |
 | **Criptografía** | Android Keystore + AES-256-GCM + AndroidX Biometric 1.2.0 |
-| **Persistencia Local** | Room Database 2.6 + TypeConverters Gson (Offline-First) |
-| **Backend & Cloud** | Firebase Authentication (Google Sign-In) + Cloud Firestore |
+| **Persistencia Local** | Room Database 2.8.5 (KSP2-ready) + TypeConverters Gson (Offline-First) |
+| **Backend & Cloud** | Firebase Authentication (Google Sign-In) + Cloud Firestore + Google Services Plugin |
 | **Arquitectura** | Clean Architecture (Domain, Data, Presentation) + MVVM |
 
 ---
@@ -96,28 +97,48 @@ PassVaultSec/
 ## ⚙️ Instrucciones de Configuración y Despliegue
 
 ### 1. Requisitos Previos
-- **Android Studio Jellyfish | Koala | Ladybug** o superior.
-- **JDK 17** o superior.
+- **Android Studio Ladybug | Meerkat** o superior.
+- **JDK 21** (configurado automáticamente mediante el toolchain Foojay en Gradle).
 - Dispositivo físico o emulador con **Android 13 (API 33)** o posterior con bloqueo por huella o PIN configurado.
 
 ### 2. Configurar Firebase y Google Sign-In (Privacidad Garantizada)
 1. Crea un proyecto en [Firebase Console](https://console.firebase.google.com/).
 2. Registra una aplicación Android con el Package Name: `com.passvaultsec.app`.
-3. Descarga tu archivo `google-services.json` y colócalo en la carpeta `app/google-services.json` (el archivo está protegido en `.gitignore` para no subirse a GitHub; tienes una plantilla de referencia en `app/google-services.json.example`).
-4. Habilita los siguientes servicios en Firebase:
+3. Registra tu **huella digital SHA-1 de desarrollo** en Firebase Console (imprescindible para que Google One Tap funcione). Puedes obtenerla ejecutando:
+   ```bash
+   ./gradlew signingReport
+   ```
+4. Descarga tu archivo `google-services.json` y colócalo en `app/google-services.json` (el archivo está protegido en `.gitignore` para no subirse a GitHub; tienes una plantilla de referencia en `app/google-services.json.example`).
+5. Habilita los siguientes servicios en Firebase:
    - **Authentication**: Proveedor *Google*.
-   - **Cloud Firestore**: Aplica el contenido de `firestore.rules`.
-5. Copia el archivo `secrets.properties.example` como `secrets.properties` y define tu `WEB_CLIENT_ID`:
+   - **Cloud Firestore**: Aplica el contenido del archivo `firestore.rules`.
+6. Copia el archivo `secrets.properties.example` como `secrets.properties` y define tu `WEB_CLIENT_ID`:
    ```properties
    WEB_CLIENT_ID=TU_CLIENT_ID.apps.googleusercontent.com
    ```
-   *(Este archivo también está en `.gitignore` para mantener tus claves 100% privadas y fuera de GitHub).*
+   *(Este archivo también está protegido en `.gitignore` para mantener tus claves 100% privadas y fuera de GitHub).*
 
-### 3. Compilación e Instalación
-Abre el proyecto en Android Studio:
-1. Sincroniza Gradle (`Sync Project with Gradle Files`).
+### 3. Compilación y Ejecución
+
+#### Desde Android Studio:
+1. Abre el proyecto y sincroniza Gradle (`Sync Project with Gradle Files`).
 2. Conecta un dispositivo Android 13+ o inicia un emulador.
 3. Presiona **Run** (`Shift + F10`) para compilar e instalar el APK de depuración.
+
+#### Desde la Terminal / CLI:
+- **Compilar APK de depuración:**
+  ```bash
+  ./gradlew assembleDebug
+  ```
+  *(El APK generado se ubica en: `app/build/outputs/apk/debug/app-debug.apk`)*
+- **Ejecutar suite de pruebas unitarias:**
+  ```bash
+  ./gradlew test
+  ```
+- **Instalar directamente en emulador o dispositivo conectado:**
+  ```bash
+  ./gradlew installDebug
+  ```
 
 ---
 
@@ -151,3 +172,30 @@ sequenceDiagram
 El proyecto cuenta con pruebas automáticas para validar:
 - Lógica de permisos de edición y lectura de colaboradores (`NoteTest.kt`).
 - Ciclo de cifrado y descifrado simétrico AES-256-GCM (`AesGcmCipherTest.kt`).
+
+Para ejecutarlas desde consola:
+```bash
+./gradlew test
+```
+
+---
+
+## 📋 Pasos a Seguir Pendientes
+
+1. **Configuración de Firebase Real**:
+   - Descargar el archivo `google-services.json` definitivo desde Firebase Console y reemplazar la plantilla en `app/google-services.json`.
+   - Obtener el **Web Client ID** del proveedor Google en Firebase y colocarlo en `secrets.properties` como `WEB_CLIENT_ID=...`.
+   - Ejecutar `./gradlew signingReport` y dar de alta la huella digital SHA-1 en la configuración de la app en Firebase Console.
+2. **Despliegue de Reglas de Seguridad**:
+   - En Firebase Console -> Cloud Firestore -> Reglas, copiar y publicar las reglas definidas en `firestore.rules`.
+3. **Puesta en Marcha y Validación en Dispositivo o Emulador**:
+   - Conectar un dispositivo físico con Android 13+ (o iniciar un emulador con API 33+ y huella digital configurada en Ajustes de Android).
+   - Ejecutar `./gradlew installDebug` o presionar Run en Android Studio.
+   - Probar los flujos principales: creación de nota rápida, creación de checklist, fijado/color, bloqueo biométrico con candado y visualización de pantalla protegida (`FLAG_SECURE`).
+4. **Prueba de Colaboración Multiusuario**:
+   - Iniciar sesión con una cuenta de Google y compartir una nota con otro correo registrado.
+   - Comprobar la sincronización en tiempo real y el respeto de los permisos (Editor vs Lector).
+5. **Preparación para Producción / Release**:
+   - Generar un Keystore de firma de producción (`release.jks`).
+   - Configurar las variables de firma en `secrets.properties` y validar la ofuscación R8 con `./gradlew assembleRelease`.
+

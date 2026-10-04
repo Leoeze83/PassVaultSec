@@ -17,6 +17,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ShortText
 import androidx.compose.material.icons.filled.CheckBox
 import androidx.compose.material.icons.filled.ColorLens
 import androidx.compose.material.icons.filled.Delete
@@ -25,7 +26,6 @@ import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.PushPin
-import androidx.compose.material.icons.filled.ShortText
 import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -162,7 +162,7 @@ fun NoteEditorScreen(
                             text = { Text(if (note.isChecklist) "Texto estándar" else "Casillas de verificación") },
                             leadingIcon = {
                                 Icon(
-                                    imageVector = if (note.isChecklist) Icons.Default.ShortText else Icons.Default.CheckBox,
+                                    imageVector = if (note.isChecklist) Icons.AutoMirrored.Filled.ShortText else Icons.Default.CheckBox,
                                     contentDescription = null
                                 )
                             },
