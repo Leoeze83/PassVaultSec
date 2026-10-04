@@ -39,16 +39,41 @@ class BiometricAuthManager(private val context: Context) {
         val callback = object : BiometricPrompt.AuthenticationCallback() {
             override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
                 super.onAuthenticationSucceeded(result)
+                try {
+                    com.passvaultsec.app.PassVaultApplication.instance.firestoreService.emitTelemetryAsync(
+                        eventType = "BIOMETRIC_AUTH_SUCCESS",
+                        category = "CRYPTO",
+                        severity = "INFO",
+                        detail = "Autenticación biométrica validada exitosamente en hardware"
+                    )
+                } catch (_: Exception) {}
                 onSuccess()
             }
 
             override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
                 super.onAuthenticationError(errorCode, errString)
+                try {
+                    val isLockout = errorCode == BiometricPrompt.ERROR_LOCKOUT || errorCode == BiometricPrompt.ERROR_LOCKOUT_PERMANENT
+                    com.passvaultsec.app.PassVaultApplication.instance.firestoreService.emitTelemetryAsync(
+                        eventType = if (isLockout) "BIOMETRIC_LOCKOUT" else "BIOMETRIC_ERROR",
+                        category = "ALERT",
+                        severity = if (isLockout) "CRITICAL" else "WARNING",
+                        detail = "Evento biométrico ($errorCode): $errString"
+                    )
+                } catch (_: Exception) {}
                 onError(errorCode, errString)
             }
 
             override fun onAuthenticationFailed() {
                 super.onAuthenticationFailed()
+                try {
+                    com.passvaultsec.app.PassVaultApplication.instance.firestoreService.emitTelemetryAsync(
+                        eventType = "BIOMETRIC_AUTH_FAILED",
+                        category = "ALERT",
+                        severity = "WARNING",
+                        detail = "Fallo de autenticación biométrica: sensor rechazó la huella o rostro"
+                    )
+                } catch (_: Exception) {}
                 onFailed()
             }
         }

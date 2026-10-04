@@ -5,6 +5,25 @@ A partir de la finalización del MVP, cada cierre de etapa ("terminamos una etap
 
 ---
 
+## [1.1.1] - Telemetría de Seguridad en Tiempo Real y Enlaces de Descarga en Colaboración 🛡️
+**Fecha:** 4 de Octubre de 2026  
+**Estado:** Estable / Pruebas Activas  
+**Tag Git:** `v1.1.1-beta`  
+**Paquete:** `com.passvaultsec.app` (`PassVaultSec-debug.apk`)
+
+### ✨ Novedades y Funcionalidades Incorporadas:
+1. **Emisión de Telemetría Real de Seguridad (SOC en Vivo)**:
+   - Emisión no bloqueante y asíncrona de eventos reales desde cualquier dispositivo móvil con la app instalada.
+   - Registro de inicio de aplicación y verificación de integridad de Android Keystore (`APP_STARTUP_INTEGRITY`).
+   - Auditoría de autenticación y fallos/éxitos biométricos en hardware (`BIOMETRIC_AUTH_SUCCESS`, `BIOMETRIC_AUTH_FAILED`, `BIOMETRIC_LOCKOUT`).
+   - Métricas de operaciones criptográficas locales (`NOTE_LOCKED_KEYSTORE`, `NOTE_UNLOCKED_BIOMETRIC`, `ENCRYPTED_NOTE_SHARED`).
+   - Métricas de almacenamiento seguro y gestión de colaboradores (`NOTE_PERSISTED_SECURELY`, `COLLABORATOR_INVITED`, `COLLABORATOR_REMOVED`).
+2. **Enlaces de Descarga Directa en Notificaciones e Invitaciones de Colaboración**:
+   - Botón de acción directa `"Descargar App"` en las notificaciones del sistema Android al recibir una invitación a colaborar, apuntando a las releases oficiales.
+   - Enlace de descarga automática incluido en los mensajes compartidos mediante apps externas (WhatsApp, Gmail, Telegram) y en paquetes de notas cifradas temporales.
+
+---
+
 ## [1.1.0] - Colaboración Moderna, Ubicación Google Maps, WorkManager y Backups Cifrados (.pvs) 🛰️
 **Fecha:** 4 de Octubre de 2026  
 **Estado:** Estable / Producción  

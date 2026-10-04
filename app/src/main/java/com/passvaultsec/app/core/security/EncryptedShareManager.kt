@@ -91,12 +91,15 @@ object EncryptedShareManager {
         passphrase: String,
         hoursValid: Int = 24
     ) {
+        val downloadUrl = "https://github.com/Leoeze83/PassVaultSec/releases"
         val shareMessage = buildString {
             append("🔐 Nota Segura Cifrada (PassVaultSec)\n")
             append("Título: \"$noteTitle\"\n")
             append("⏳ Válida por $hoursValid horas.\n\n")
             append("🔗 Enlace Cifrado: $secureLink\n\n")
             append("🔑 Clave de Acceso para Descifrar: $passphrase\n\n")
+            append("📲 ¿No tienes la app instalada? Descarga PassVaultSec directamente aquí:\n")
+            append("$downloadUrl\n\n")
             append("Copia este enlace o ábrelo en PassVaultSec para ver la nota.")
         }
 
@@ -109,6 +112,16 @@ object EncryptedShareManager {
 
         val shareIntent = Intent.createChooser(sendIntent, "Compartir nota cifrada")
         context.startActivity(shareIntent)
+
+        // Telemetría de compartición cifrada
+        try {
+            com.passvaultsec.app.PassVaultApplication.instance.firestoreService.emitTelemetryAsync(
+                eventType = "ENCRYPTED_NOTE_SHARED",
+                category = "CRYPTO",
+                severity = "INFO",
+                detail = "Nota cifrada compartida con paquete temporal, clave y enlace de descarga"
+            )
+        } catch (_: Exception) {}
     }
 
     private fun generateRandomPassphrase(length: Int): String {

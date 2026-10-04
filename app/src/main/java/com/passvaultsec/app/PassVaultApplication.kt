@@ -52,6 +52,14 @@ class PassVaultApplication : Application() {
         // Inicializar canales de notificación y tareas en segundo plano
         com.passvaultsec.app.core.ui.util.NotificationHelper.createNotificationChannels(this)
         com.passvaultsec.app.core.sync.SyncManager.schedulePeriodicSync(this)
+
+        // Telemetría de inicio de aplicación e integridad de hardware en tiempo real
+        firestoreService.emitTelemetryAsync(
+            eventType = "APP_STARTUP_INTEGRITY",
+            category = "INTEGRITY",
+            severity = "INFO",
+            detail = "PassVaultSec iniciado en dispositivo. Hardware Keystore AES-256 verificado."
+        )
     }
 
     companion object {

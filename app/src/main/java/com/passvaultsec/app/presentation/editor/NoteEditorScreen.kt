@@ -603,13 +603,18 @@ fun NoteEditorScreen(
             },
             onInviteViaApp = { email, role ->
                 val roleDesc = if (role == com.passvaultsec.app.domain.model.CollaboratorRole.EDITOR) "Editor (Lectura y Escritura)" else "Lector (Solo Lectura)"
+                val downloadUrl = "https://github.com/Leoeze83/PassVaultSec/releases"
                 val sendIntent = android.content.Intent().apply {
                     action = android.content.Intent.ACTION_SEND
                     putExtra(android.content.Intent.EXTRA_EMAIL, arrayOf(email))
                     putExtra(android.content.Intent.EXTRA_SUBJECT, "Invitación para colaborar en PassVaultSec")
                     putExtra(
                         android.content.Intent.EXTRA_TEXT,
-                        "👋 ¡Hola!\n\nTe he invitado a colaborar en la nota '${note.title.ifBlank { "Sin título" }}' en PassVaultSec con permisos de $roleDesc.\n\nAbre la aplicación para sincronizarla automáticamente en tu dispositivo."
+                        "👋 ¡Hola!\n\n" +
+                        "Te he invitado a colaborar en la nota '${note.title.ifBlank { "Sin título" }}' en PassVaultSec con permisos de $roleDesc.\n\n" +
+                        "📲 Si aún no tienes instalada la app o necesitas la última versión, descárgala directamente aquí:\n" +
+                        "$downloadUrl\n\n" +
+                        "¡Abre PassVaultSec con tu correo ($email) para sincronizarla automáticamente!"
                     )
                     type = "text/plain"
                 }

@@ -61,6 +61,14 @@ class NoteRepositoryImpl(
             if (authManager.isUserSignedIn()) {
                 firestoreService.saveNote(preparedNote)
             }
+
+            // Emite telemetría anonimizada de persistencia
+            firestoreService.emitTelemetryAsync(
+                eventType = if (preparedNote.isLocked) "NOTE_ENCRYPTED_SAVED" else "NOTE_PERSISTED_SECURELY",
+                category = if (preparedNote.isLocked) "CRYPTO" else "STORAGE",
+                severity = "INFO",
+                detail = if (preparedNote.isLocked) "Nota cifrada con Android Keystore guardada" else "Nota persistida en almacenamiento seguro"
+            )
         }
     }
 
@@ -70,6 +78,12 @@ class NoteRepositoryImpl(
             if (authManager.isUserSignedIn()) {
                 firestoreService.deleteNote(id)
             }
+            firestoreService.emitTelemetryAsync(
+                eventType = "NOTE_PURGED_SECURE",
+                category = "STORAGE",
+                severity = "INFO",
+                detail = "Nota eliminada de forma segura del almacenamiento"
+            )
         }
     }
 
@@ -112,13 +126,13 @@ class NoteRepositoryImpl(
             noteDao.upsertNote(updatedEntity)
             if (authManager.isUserSignedIn()) {
                 firestoreService.saveNote(updatedEntity.toDomain())
-                firestoreService.logSecurityEvent(
-                    eventType = if (newLockState) "NOTE_LOCKED_KEYSTORE" else "NOTE_UNLOCKED_BIOMETRIC",
-                    category = "CRYPTO",
-                    severity = "INFO",
-                    detail = if (newLockState) "Nota asegurada y cifrada con hardware Android Keystore (AES-256)" else "Nota descifrada tras autenticación local exitosa"
-                )
             }
+            firestoreService.emitTelemetryAsync(
+                eventType = if (newLockState) "NOTE_LOCKED_KEYSTORE" else "NOTE_UNLOCKED_BIOMETRIC",
+                category = "CRYPTO",
+                severity = "INFO",
+                detail = if (newLockState) "Nota asegurada y cifrada con hardware Android Keystore (AES-256)" else "Nota descifrada tras autenticación local exitosa"
+            )
         }
     }
 

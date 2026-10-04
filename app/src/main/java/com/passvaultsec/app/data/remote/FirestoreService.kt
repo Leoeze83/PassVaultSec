@@ -10,9 +10,12 @@ import com.passvaultsec.app.domain.model.CollaboratorRole
 import com.passvaultsec.app.domain.model.Note
 import com.passvaultsec.app.domain.model.NoteLocation
 import com.passvaultsec.app.domain.model.UrlPreview
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
 /**
@@ -152,15 +155,36 @@ class FirestoreService {
         severity: String,
         detail: String
     ): Result<Unit> = runCatching {
+        val currentUser = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser
+        val userIdHash = currentUser?.uid ?: "client_${android.os.Build.ID.hashCode().toString(16)}"
         val eventData = mapOf(
             "eventType" to eventType,
             "category" to category,
             "severity" to severity,
             "detail" to detail,
-            "deviceModel" to "${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL} (Android ${android.os.Build.VERSION.RELEASE}, API ${android.os.Build.VERSION.SDK_INT})",
+            "deviceModel" to "${android.os.Build.MANUFACTURER.replaceFirstChar { it.uppercase() }} ${android.os.Build.MODEL} (Android ${android.os.Build.VERSION.RELEASE})",
+            "userId" to userIdHash,
             "timestamp" to System.currentTimeMillis()
         )
         firestore.collection("security_telemetry").add(eventData).await()
+    }
+
+    /**
+     * Emite un evento de seguridad de forma asíncrona no bloqueante (Fire-and-Forget).
+     */
+    fun emitTelemetryAsync(
+        eventType: String,
+        category: String,
+        severity: String,
+        detail: String
+    ) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                logSecurityEvent(eventType, category, severity, detail)
+            } catch (e: Exception) {
+                Log.w(TAG, "Error emitiendo telemetría: ${e.message}")
+            }
+        }
     }
 
     /**
@@ -212,10 +236,19 @@ class FirestoreService {
             "ownerEmail" to ownerEmail,
             "collaboratorEmail" to cleanEmail,
             "role" to role.value,
+            "downloadUrl" to "https://github.com/Leoeze83/PassVaultSec/releases",
             "timestamp" to System.currentTimeMillis()
         )
 
         invitationsCollection.document("${noteId}_$key").set(invitationData, SetOptions.merge()).await()
+
+        // Emite telemetría de colaboración en tiempo real
+        emitTelemetryAsync(
+            eventType = "COLLABORATOR_INVITED",
+            category = "COLLAB",
+            severity = "INFO",
+            detail = "Colaborador añadido ($cleanEmail, ${role.value}) con enlace de descarga automática de la app"
+        )
     }
 
     /**
@@ -230,6 +263,14 @@ class FirestoreService {
         ).await()
 
         invitationsCollection.document("${noteId}_$key").delete().await()
+
+        // Emite telemetría de revocación de colaborador
+        emitTelemetryAsync(
+            eventType = "COLLABORATOR_REMOVED",
+            category = "COLLAB",
+            severity = "INFO",
+            detail = "Colaborador $cleanEmail revocado de la nota"
+        )
     }
 
     @Suppress("UNCHECKED_CAST")

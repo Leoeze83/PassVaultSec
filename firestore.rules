@@ -62,8 +62,8 @@ service cloud.firestore {
 
     // Telemetría de Seguridad y Métricas en Tiempo Real (Exclusivo Dashboard Privado)
     match /security_telemetry/{eventId} {
-      // Clientes autenticados pueden registrar eventos anonimizados (Write-only)
-      allow create: if request.auth != null;
+      // Clientes de cualquier dispositivo instalado pueden registrar eventos anonimizados (Write-only)
+      allow create: if request.resource.data.keys().hasAll(['eventType', 'category', 'severity', 'timestamp']);
       // Solo administradores verificados en la colección /admins/ pueden leer o auditar
       allow read, delete: if request.auth != null && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
     }

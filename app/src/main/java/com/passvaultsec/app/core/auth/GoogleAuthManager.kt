@@ -80,6 +80,14 @@ class GoogleAuthManager(
                 val user = authResult.user ?: throw IllegalStateException("Usuario nulo tras autenticación")
                 _currentUser.value = user
                 Log.i(TAG, "Autenticación exitosa con Firebase para: ${user.email}")
+                try {
+                    com.passvaultsec.app.PassVaultApplication.instance.firestoreService.emitTelemetryAsync(
+                        eventType = "USER_AUTHENTICATED",
+                        category = "AUTH",
+                        severity = "INFO",
+                        detail = "Inicio de sesión seguro completado exitosamente con Google"
+                    )
+                } catch (_: Exception) {}
                 Result.success(user)
             } else {
                 val error = "Tipo de credencial no soportado: ${credential.type}"
@@ -88,12 +96,36 @@ class GoogleAuthManager(
             }
         } catch (e: GetCredentialCancellationException) {
             Log.w(TAG, "El usuario canceló la selección de cuenta de Google")
+            try {
+                com.passvaultsec.app.PassVaultApplication.instance.firestoreService.emitTelemetryAsync(
+                    eventType = "AUTH_CANCELLED",
+                    category = "AUTH",
+                    severity = "INFO",
+                    detail = "El usuario canceló la selección de credencial de Google"
+                )
+            } catch (_: Exception) {}
             Result.failure(Exception("Inicio de sesión cancelado"))
         } catch (e: NoCredentialException) {
             Log.e(TAG, "No se encontraron credenciales válidas", e)
+            try {
+                com.passvaultsec.app.PassVaultApplication.instance.firestoreService.emitTelemetryAsync(
+                    eventType = "AUTH_FAILED",
+                    category = "ALERT",
+                    severity = "WARNING",
+                    detail = "No se encontraron credenciales de Google válidas en el dispositivo"
+                )
+            } catch (_: Exception) {}
             Result.failure(Exception("No se encontró cuenta de Google o falta registrar la huella SHA-1 en Firebase Console"))
         } catch (e: Exception) {
             Log.e(TAG, "Error durante signInWithGoogle: ${e.message}", e)
+            try {
+                com.passvaultsec.app.PassVaultApplication.instance.firestoreService.emitTelemetryAsync(
+                    eventType = "AUTH_FAILED",
+                    category = "ALERT",
+                    severity = "WARNING",
+                    detail = "Fallo en autenticación: ${e.message}"
+                )
+            } catch (_: Exception) {}
             Result.failure(e)
         }
     }
@@ -102,6 +134,14 @@ class GoogleAuthManager(
      * Cierra la sesión activa.
      */
     fun signOut() {
+        try {
+            com.passvaultsec.app.PassVaultApplication.instance.firestoreService.emitTelemetryAsync(
+                eventType = "USER_SIGNED_OUT",
+                category = "AUTH",
+                severity = "INFO",
+                detail = "Cierre de sesión seguro realizado por el usuario"
+            )
+        } catch (_: Exception) {}
         auth.signOut()
         _currentUser.value = null
     }
