@@ -112,6 +112,12 @@ class NoteRepositoryImpl(
             noteDao.upsertNote(updatedEntity)
             if (authManager.isUserSignedIn()) {
                 firestoreService.saveNote(updatedEntity.toDomain())
+                firestoreService.logSecurityEvent(
+                    eventType = if (newLockState) "NOTE_LOCKED_KEYSTORE" else "NOTE_UNLOCKED_BIOMETRIC",
+                    category = "CRYPTO",
+                    severity = "INFO",
+                    detail = if (newLockState) "Nota asegurada y cifrada con hardware Android Keystore (AES-256)" else "Nota descifrada tras autenticación local exitosa"
+                )
             }
         }
     }

@@ -143,6 +143,27 @@ class FirestoreService {
     }
 
     /**
+     * Registra un evento de telemetría de seguridad anonimizado en la colección /security_telemetry/.
+     * Los clientes tienen permiso Write-Only en Firestore para no filtrar datos de otros usuarios.
+     */
+    suspend fun logSecurityEvent(
+        eventType: String,
+        category: String,
+        severity: String,
+        detail: String
+    ): Result<Unit> = runCatching {
+        val eventData = mapOf(
+            "eventType" to eventType,
+            "category" to category,
+            "severity" to severity,
+            "detail" to detail,
+            "deviceModel" to "${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL} (Android ${android.os.Build.VERSION.RELEASE}, API ${android.os.Build.VERSION.SDK_INT})",
+            "timestamp" to System.currentTimeMillis()
+        )
+        firestore.collection("security_telemetry").add(eventData).await()
+    }
+
+    /**
      * Guarda o actualiza una nota en Firestore.
      */
     suspend fun saveNote(note: Note): Result<Unit> = runCatching {
