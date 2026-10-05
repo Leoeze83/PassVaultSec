@@ -89,5 +89,12 @@ service cloud.firestore {
       allow read: if isSOCAdmin();
       allow delete: if isSuperAdmin();
     }
+
+    // Registro y Gestión de Flota de Dispositivos Conectados (SOC)
+    match /device_registry/{deviceId} {
+      allow read: if isSOCAdmin();
+      allow write: if isSOCAdmin();
+    }
   }
 }
+
