@@ -603,7 +603,7 @@ fun NoteEditorScreen(
             },
             onInviteViaApp = { email, role ->
                 val roleDesc = if (role == com.passvaultsec.app.domain.model.CollaboratorRole.EDITOR) "Editor (Lectura y Escritura)" else "Lector (Solo Lectura)"
-                val downloadUrl = "https://github.com/Leoeze83/PassVaultSec/releases"
+                val downloadUrl = com.passvaultsec.app.core.ui.util.GitHubReleaseHelper.getDirectDownloadUrlSync()
                 val sendIntent = android.content.Intent().apply {
                     action = android.content.Intent.ACTION_SEND
                     putExtra(android.content.Intent.EXTRA_EMAIL, arrayOf(email))

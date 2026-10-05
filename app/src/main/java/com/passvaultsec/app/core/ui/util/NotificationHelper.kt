@@ -50,7 +50,8 @@ object NotificationHelper {
         noteId: String,
         noteTitle: String,
         ownerEmail: String,
-        role: String
+        role: String,
+        downloadUrl: String? = null
     ) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             val granted = ContextCompat.checkSelfPermission(
@@ -73,9 +74,10 @@ object NotificationHelper {
         )
 
         val roleDescription = if (role.equals("editor", ignoreCase = true)) "Editor (Lectura y Escritura)" else "Lector (Solo Lectura)"
-        val downloadUrl = "https://github.com/Leoeze83/PassVaultSec/releases"
+        val effectiveDownloadUrl = downloadUrl?.takeIf { it.isNotBlank() }
+            ?: GitHubReleaseHelper.getDirectDownloadUrlSync()
 
-        val downloadIntent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse(downloadUrl)).apply {
+        val downloadIntent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse(effectiveDownloadUrl)).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK
         }
         val downloadPendingIntent = PendingIntent.getActivity(
@@ -93,7 +95,7 @@ object NotificationHelper {
                 NotificationCompat.BigTextStyle()
                     .bigText(
                         "$ownerEmail te ha añadido como colaborador en la nota '$noteTitle' con permisos de $roleDescription.\n\n" +
-                        "📲 Abre la nota en PassVaultSec o descarga/actualiza la aplicación directamente aquí:\n$downloadUrl"
+                        "📲 Abre la nota en PassVaultSec o descarga/actualiza la aplicación directamente aquí:\n$effectiveDownloadUrl"
                     )
             )
             .setPriority(NotificationCompat.PRIORITY_HIGH)
@@ -111,7 +113,7 @@ object NotificationHelper {
                 eventType = "INVITATION_NOTIFIED",
                 category = "COLLAB",
                 severity = "INFO",
-                detail = "Notificación de colaboración generada con enlace de descarga directa a GitHub Releases"
+                detail = "Notificación de colaboración generada con enlace directo: $effectiveDownloadUrl"
             )
         } catch (_: Exception) {}
     }

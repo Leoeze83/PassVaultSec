@@ -45,6 +45,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalContext
 import com.passvaultsec.app.domain.model.Collaborator
 import com.passvaultsec.app.domain.model.CollaboratorRole
 
@@ -61,6 +62,7 @@ fun CollaboratorsDialog(
     onShareEncryptedLink: (() -> Unit)? = null,
     onDismiss: () -> Unit
 ) {
+    val context = LocalContext.current
     var emailInput by remember { mutableStateOf("") }
     var selectedRole by remember { mutableStateOf(CollaboratorRole.EDITOR) }
     var roleDropdownExpanded by remember { mutableStateOf(false) }
@@ -278,6 +280,33 @@ fun CollaboratorsDialog(
                             Spacer(modifier = Modifier.width(6.dp))
                             Text("Generar Enlace Cifrado Temporal", fontSize = 12.sp)
                         }
+                    }
+
+                    // Opción para compartir enlace directo de descarga de la app
+                    Spacer(modifier = Modifier.height(10.dp))
+                    OutlinedButton(
+                        onClick = {
+                            val downloadUrl = com.passvaultsec.app.core.ui.util.GitHubReleaseHelper.getDirectDownloadUrlSync()
+                            val shareIntent = android.content.Intent().apply {
+                                action = android.content.Intent.ACTION_SEND
+                                putExtra(
+                                    android.content.Intent.EXTRA_TEXT,
+                                    "📲 Descarga la última versión de PassVaultSec para colaborar en tiempo real:\n$downloadUrl"
+                                )
+                                type = "text/plain"
+                            }
+                            context.startActivity(android.content.Intent.createChooser(shareIntent, "Compartir enlace de descarga de la App"))
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Share,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp),
+                            tint = MaterialTheme.colorScheme.secondary
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("Compartir Enlace de Descarga de la App", fontSize = 12.sp)
                     }
                 }
             }

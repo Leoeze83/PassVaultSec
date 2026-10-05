@@ -91,7 +91,7 @@ object EncryptedShareManager {
         passphrase: String,
         hoursValid: Int = 24
     ) {
-        val downloadUrl = "https://github.com/Leoeze83/PassVaultSec/releases"
+        val downloadUrl = com.passvaultsec.app.core.ui.util.GitHubReleaseHelper.getDirectDownloadUrlSync()
         val shareMessage = buildString {
             append("🔐 Nota Segura Cifrada (PassVaultSec)\n")
             append("Título: \"$noteTitle\"\n")

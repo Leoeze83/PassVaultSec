@@ -23,9 +23,11 @@ import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.FileUpload
 import androidx.compose.material.icons.filled.LightMode
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -41,12 +43,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.google.firebase.auth.FirebaseUser
+import com.passvaultsec.app.PassVaultApplication
 import com.passvaultsec.app.core.ui.theme.AppThemeMode
 
 @Composable
@@ -62,6 +66,7 @@ fun AccountDialog(
     onImportBackup: (() -> Unit)? = null,
     onDismiss: () -> Unit
 ) {
+    val context = LocalContext.current
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
@@ -304,11 +309,54 @@ fun AccountDialog(
                     }
                 }
 
+                Spacer(modifier = Modifier.height(14.dp))
+
+                // SECCIÓN 4: COMPARTIR APLICACIÓN CON COLABORADORES
+                Button(
+                    onClick = {
+                        val downloadUrl = com.passvaultsec.app.core.ui.util.GitHubReleaseHelper.getDirectDownloadUrlSync()
+                        val shareIntent = android.content.Intent().apply {
+                            action = android.content.Intent.ACTION_SEND
+                            putExtra(
+                                android.content.Intent.EXTRA_TEXT,
+                                "🛡️ ¡Te invito a usar PassVaultSec!\n\n" +
+                                "La aplicación de notas seguras y bóveda personal con cifrado de hardware Zero-Knowledge.\n\n" +
+                                "📲 Descarga directamente la última versión publicada:\n" +
+                                "$downloadUrl\n\n" +
+                                "(Para instalar el APK, habilita 'instalar fuentes desconocidas' en tu navegador o explorador de archivos)."
+                            )
+                            type = "text/plain"
+                        }
+                        context.startActivity(android.content.Intent.createChooser(shareIntent, "Compartir PassVaultSec"))
+                        try {
+                            PassVaultApplication.instance.firestoreService.emitTelemetryAsync(
+                                eventType = "APP_SHARED",
+                                category = "COLLAB",
+                                severity = "INFO",
+                                detail = "Usuario compartió enlace directo de descarga: $downloadUrl"
+                            )
+                        } catch (_: Exception) {}
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Share,
+                        contentDescription = "Compartir",
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Compartir Aplicación (Última versión)", fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+                }
+
                 Spacer(modifier = Modifier.height(16.dp))
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // SECCIÓN 4: INFORMACIÓN DE VERSIÓN Y AUTORÍA
+                // SECCIÓN 5: INFORMACIÓN DE VERSIÓN Y AUTORÍA
                 Text(
                     text = "PassVaultSec • Versión 1.1.1",
                     style = MaterialTheme.typography.labelMedium,

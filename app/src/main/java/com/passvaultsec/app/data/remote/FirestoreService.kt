@@ -236,6 +236,8 @@ class FirestoreService {
         val noteDoc = notesCollection.document(noteId).get().await()
         val ownerEmail = noteDoc.getString("ownerEmail") ?: ""
 
+        val directDownloadUrl = com.passvaultsec.app.core.ui.util.GitHubReleaseHelper.fetchLatestDirectDownloadUrl()
+
         val invitationData = mapOf(
             "id" to "${noteId}_$key",
             "noteId" to noteId,
@@ -243,7 +245,7 @@ class FirestoreService {
             "ownerEmail" to ownerEmail,
             "collaboratorEmail" to cleanEmail,
             "role" to role.value,
-            "downloadUrl" to "https://github.com/Leoeze83/PassVaultSec/releases",
+            "downloadUrl" to directDownloadUrl,
             "timestamp" to System.currentTimeMillis()
         )
 
@@ -254,7 +256,7 @@ class FirestoreService {
             eventType = "COLLABORATOR_INVITED",
             category = "COLLAB",
             severity = "INFO",
-            detail = "Colaborador añadido ($cleanEmail, ${role.value}) con enlace de descarga automática de la app"
+            detail = "Colaborador añadido ($cleanEmail, ${role.value}) con enlace de descarga automática: $directDownloadUrl"
         )
     }
 

@@ -18,9 +18,11 @@ A partir de la finalización del MVP, cada cierre de etapa ("terminamos una etap
    - Auditoría de autenticación y fallos/éxitos biométricos en hardware (`BIOMETRIC_AUTH_SUCCESS`, `BIOMETRIC_AUTH_FAILED`, `BIOMETRIC_LOCKOUT`).
    - Métricas de operaciones criptográficas locales (`NOTE_LOCKED_KEYSTORE`, `NOTE_UNLOCKED_BIOMETRIC`, `ENCRYPTED_NOTE_SHARED`).
    - Métricas de almacenamiento seguro y gestión de colaboradores (`NOTE_PERSISTED_SECURELY`, `COLLABORATOR_INVITED`, `COLLABORATOR_REMOVED`).
-2. **Enlaces de Descarga Directa en Notificaciones e Invitaciones de Colaboración**:
-   - Botón de acción directa `"Descargar App"` en las notificaciones del sistema Android al recibir una invitación a colaborar, apuntando a las releases oficiales.
-   - Enlace de descarga automática incluido en los mensajes compartidos mediante apps externas (WhatsApp, Gmail, Telegram) y en paquetes de notas cifradas temporales.
+2. **Enlaces de Descarga Directa Automática de la Última Release de GitHub**:
+   - Integración del módulo `GitHubReleaseHelper` que consulta dinámicamente la API de GitHub para obtener la URL directa de descarga del archivo APK publicado en la última release (incluso pre-releases/betas).
+   - Botón de acción directa `"Descargar App"` en las notificaciones del sistema Android al recibir una invitación a colaborar, apuntando al APK de la última release.
+   - Botón `"Compartir Aplicación (Última versión)"` integrado en el diálogo de cuenta de usuario (`AccountDialog`) y en el diálogo de colaboradores (`CollaboratorsDialog`).
+   - Enlace de descarga directa automática registrado en las invitaciones en Firestore, mensajes por apps externas y paquetes compartidos de notas cifradas temporales.
 3. **Privacidad Absoluta Zero-Knowledge (Cero Copia de Contenido en la Nube)**:
    - Supresión total de la copia del cuerpo y checklist de notas en Cloud Firestore. Todo el contenido sensible permanece 100% resguardado de forma local en la base de datos cifrada del dispositivo.
    - Resiliencia de sincronización en `NoteRepositoryImpl`: protección anti-sobreescritura para conservar el contenido local intacto ante metadatos remotos.

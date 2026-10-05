@@ -1,6 +1,7 @@
 package com.passvaultsec.app
 
 import android.app.Application
+import kotlinx.coroutines.launch
 import com.passvaultsec.app.core.auth.GoogleAuthManager
 import com.passvaultsec.app.core.security.BiometricAuthManager
 import com.passvaultsec.app.core.security.CryptoManager
@@ -60,6 +61,11 @@ class PassVaultApplication : Application() {
             severity = "INFO",
             detail = "PassVaultSec iniciado en dispositivo. Hardware Keystore AES-256 verificado."
         )
+
+        // Pre-cargar dinámicamente la URL de la última release de GitHub
+        kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+            com.passvaultsec.app.core.ui.util.GitHubReleaseHelper.fetchLatestDirectDownloadUrl()
+        }
     }
 
     companion object {

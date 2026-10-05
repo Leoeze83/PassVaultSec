@@ -137,6 +137,8 @@ class MainActivity : FragmentActivity() {
                                             val noteTitle = inv["noteTitle"] as? String ?: "Nota Compartida"
                                             val ownerEmail = inv["ownerEmail"] as? String ?: ""
                                             val role = inv["role"] as? String ?: "editor"
+                                            val downloadUrl = inv["downloadUrl"] as? String
+                                                ?: com.passvaultsec.app.core.ui.util.GitHubReleaseHelper.getDirectDownloadUrlSync()
 
                                             if (!notifiedInvitationIds.contains(id)) {
                                                 notifiedInvitationIds.add(id)
@@ -145,7 +147,8 @@ class MainActivity : FragmentActivity() {
                                                     noteId = noteId,
                                                     noteTitle = noteTitle,
                                                     ownerEmail = ownerEmail,
-                                                    role = role
+                                                    role = role,
+                                                    downloadUrl = downloadUrl
                                                 )
                                                 repository.syncNotes()
                                             }

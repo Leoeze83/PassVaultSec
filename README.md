@@ -150,7 +150,8 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 
 El proyecto sigue una estricta política de versionado documentada en [`CHANGELOG.md`](CHANGELOG.md):
 
-* **`v1.1.0` (Actual - Etapa 2)**: Colaboración moderna con notificaciones en tiempo real, ubicación GPS y previsualización de Google Maps, WorkManager sync, enlaces temporales cifrados y backups locales .pvs.
+* **`v1.1.1-beta` (Actual)**: Telemetría de seguridad en vivo con SOC dashboard en Vercel, enlaces dinámicos de descarga directa en notificaciones e invitaciones, botón de compartir app y Zero-Knowledge total.
+* **`v1.1.0` (Etapa 2)**: Colaboración moderna con notificaciones en tiempo real, ubicación GPS y previsualización de Google Maps, WorkManager sync, enlaces temporales cifrados y backups locales .pvs.
 * **`v1.0.0` (MVP Finalizado)**: Lanzamiento oficial del MVP con todas las características core, diseño pulido, multimedia, enlaces y seguridad auditada.
 * **`v2.0.0` (MVP v2 - Opción B comprometida)**: Dashboard web en tiempo real con telemetría de eventos de seguridad y métricas de servidor / Cloud Firestore.
 
