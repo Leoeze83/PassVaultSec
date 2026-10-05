@@ -157,12 +157,20 @@ class FirestoreService {
     ): Result<Unit> = runCatching {
         val currentUser = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser
         val userIdHash = currentUser?.uid ?: "client_${android.os.Build.ID.hashCode().toString(16)}"
+        val manufacturer = android.os.Build.MANUFACTURER.replaceFirstChar { it.uppercase() }
+        val model = android.os.Build.MODEL
+        val androidVersion = android.os.Build.VERSION.RELEASE
         val eventData = mapOf(
             "eventType" to eventType,
             "category" to category,
             "severity" to severity,
             "detail" to detail,
-            "deviceModel" to "${android.os.Build.MANUFACTURER.replaceFirstChar { it.uppercase() }} ${android.os.Build.MODEL} (Android ${android.os.Build.VERSION.RELEASE})",
+            "deviceModel" to "$manufacturer $model (Android $androidVersion)",
+            "manufacturer" to manufacturer,
+            "model" to model,
+            "brand" to android.os.Build.BRAND,
+            "androidVersion" to androidVersion,
+            "appVersion" to "1.1.1",
             "userId" to userIdHash,
             "timestamp" to System.currentTimeMillis()
         )

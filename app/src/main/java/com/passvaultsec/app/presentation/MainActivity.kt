@@ -327,4 +327,21 @@ class MainActivity : FragmentActivity() {
             }
         }
     }
+
+    override fun onResume() {
+        super.onResume()
+        try {
+            val app = application as PassVaultApplication
+            val deviceModel = "${android.os.Build.MANUFACTURER.replaceFirstChar { it.uppercase() }} ${android.os.Build.MODEL}"
+            app.firestoreService.emitTelemetryAsync(
+                eventType = "DEVICE_PRESENCE_HEARTBEAT",
+                category = "SYNC",
+                severity = "INFO",
+                detail = "Dispositivo activo en primer plano ($deviceModel)"
+            )
+        } catch (e: Exception) {
+            Log.w("MainActivity", "Error emitiendo telemetría onResume: ${e.message}")
+        }
+    }
 }
+
