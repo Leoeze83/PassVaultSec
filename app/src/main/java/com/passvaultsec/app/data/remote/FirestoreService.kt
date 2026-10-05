@@ -46,7 +46,6 @@ class FirestoreService {
 
         val listener = notesCollection
             .whereEqualTo("ownerId", userId)
-            .whereEqualTo("isDeleted", false)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
                     Log.w(TAG, "Error escuchando notas propias: ${error.message}")
@@ -55,7 +54,7 @@ class FirestoreService {
                 }
                 val notes = snapshot?.documents?.mapNotNull { doc ->
                     mapDocumentToNote(doc.id, doc.data)
-                } ?: emptyList()
+                }?.filter { !it.isDeleted } ?: emptyList()
                 trySend(notes)
             }
 
@@ -67,15 +66,15 @@ class FirestoreService {
      * Es resiliente ante errores de red o permisos.
      */
     fun observeSharedNotes(userEmail: String): Flow<List<Note>> = callbackFlow {
-        if (userEmail.isEmpty()) {
+        val cleanEmail = userEmail.lowercase().trim()
+        if (cleanEmail.isEmpty()) {
             trySend(emptyList())
             close()
             return@callbackFlow
         }
 
         val listener = notesCollection
-            .whereArrayContains("collaboratorEmails", userEmail.lowercase())
-            .whereEqualTo("isDeleted", false)
+            .whereArrayContains("collaboratorEmails", cleanEmail)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
                     Log.w(TAG, "Error escuchando notas compartidas: ${error.message}")
@@ -84,7 +83,7 @@ class FirestoreService {
                 }
                 val notes = snapshot?.documents?.mapNotNull { doc ->
                     mapDocumentToNote(doc.id, doc.data)
-                } ?: emptyList()
+                }?.filter { !it.isDeleted } ?: emptyList()
                 trySend(notes)
             }
 
@@ -126,23 +125,24 @@ class FirestoreService {
         if (userId.isEmpty()) return@runCatching emptyList()
         val snapshot = notesCollection
             .whereEqualTo("ownerId", userId)
-            .whereEqualTo("isDeleted", false)
             .get()
             .await()
         snapshot.documents.mapNotNull { doc -> mapDocumentToNote(doc.id, doc.data) }
+            .filter { !it.isDeleted }
     }
 
     /**
      * Obtiene una sola vez todas las notas compartidas con el usuario.
      */
     suspend fun getSharedNotes(userEmail: String): Result<List<Note>> = runCatching {
-        if (userEmail.isEmpty()) return@runCatching emptyList()
+        val cleanEmail = userEmail.lowercase().trim()
+        if (cleanEmail.isEmpty()) return@runCatching emptyList()
         val snapshot = notesCollection
-            .whereArrayContains("collaboratorEmails", userEmail.lowercase())
-            .whereEqualTo("isDeleted", false)
+            .whereArrayContains("collaboratorEmails", cleanEmail)
             .get()
             .await()
         snapshot.documents.mapNotNull { doc -> mapDocumentToNote(doc.id, doc.data) }
+            .filter { !it.isDeleted }
     }
 
     /**
@@ -291,7 +291,7 @@ class FirestoreService {
                 ChecklistItem(
                     id = it["id"] as? String ?: "",
                     text = it["text"] as? String ?: "",
-                    isDone = it["isDone"] as? Boolean ?: false
+                    isDone = (it["isDone"] as? Boolean) ?: (it["isChecked"] as? Boolean) ?: false
                 )
             }
 
@@ -363,6 +363,14 @@ class FirestoreService {
             )
         }
 
+        val serializedChecklist = note.checklistItems.map {
+            mapOf(
+                "id" to it.id,
+                "text" to it.text,
+                "isDone" to it.isDone
+            )
+        }
+
         val serializedUrlPreviews = note.urlPreviews.map {
             mapOf(
                 "url" to it.url,
@@ -388,10 +396,9 @@ class FirestoreService {
             "ownerId" to note.ownerId,
             "ownerEmail" to note.ownerEmail,
             "title" to note.title,
-            // PRIVACIDAD TOTAL ZERO-KNOWLEDGE: El contenido y listas permanecen 100% locales en el dispositivo
-            "content" to "",
+            "content" to note.content,
             "isChecklist" to note.isChecklist,
-            "checklistItems" to emptyList<Map<String, Any>>(),
+            "checklistItems" to serializedChecklist,
             "color" to note.color,
             "textColor" to note.textColor,
             "imageUris" to note.imageUris,

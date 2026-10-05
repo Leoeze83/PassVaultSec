@@ -10,6 +10,8 @@ import com.passvaultsec.app.domain.model.ChecklistItem
 import com.passvaultsec.app.domain.model.CollaboratorRole
 import com.passvaultsec.app.domain.model.Note
 import com.passvaultsec.app.domain.repository.NoteRepository
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -38,26 +40,50 @@ class NoteEditorViewModel(
     private val _uiState = MutableStateFlow(NoteEditorUiState())
     val uiState: StateFlow<NoteEditorUiState> = _uiState
 
+    private var autoSaveJob: Job? = null
+    private var observeJob: Job? = null
+
     init {
         loadNote()
     }
 
+    private fun scheduleAutoSave() {
+        autoSaveJob?.cancel()
+        autoSaveJob = viewModelScope.launch {
+            delay(1200)
+            saveNote()
+        }
+    }
+
+    private fun observeNoteChanges(id: String) {
+        if (observeJob != null) return
+        observeJob = viewModelScope.launch {
+            repository.observeNoteById(id).collect { updatedNote ->
+                if (updatedNote != null) {
+                    val currentNote = _uiState.value.note
+                    val myEmail = authManager.getCurrentUserEmail().lowercase().trim()
+                    val myUid = authManager.getCurrentUserId()
+
+                    val isActivelyEditing = autoSaveJob?.isActive == true
+                    if (_uiState.value.isNewNote || (!isActivelyEditing && updatedNote.updatedAt > currentNote.updatedAt)) {
+                        val canEdit = updatedNote.canEdit(myEmail, myUid)
+                        _uiState.value = _uiState.value.copy(
+                            note = updatedNote,
+                            isNewNote = false,
+                            canEdit = canEdit
+                        )
+                    }
+                }
+            }
+        }
+    }
+
     private fun loadNote() {
-        val currentUserEmail = authManager.getCurrentUserEmail()
+        val currentUserEmail = authManager.getCurrentUserEmail().lowercase().trim()
         val currentUserId = authManager.getCurrentUserId()
 
         if (noteId != null) {
-            viewModelScope.launch {
-                val existingNote = repository.getNoteById(noteId)
-                if (existingNote != null) {
-                    val canEdit = existingNote.canEdit(currentUserEmail, currentUserId)
-                    _uiState.value = _uiState.value.copy(
-                        note = existingNote,
-                        isNewNote = false,
-                        canEdit = canEdit
-                    )
-                }
-            }
+            observeNoteChanges(noteId)
         } else {
             val initialNote = Note(
                 ownerId = currentUserId,
@@ -78,6 +104,7 @@ class NoteEditorViewModel(
         _uiState.value = _uiState.value.copy(
             note = _uiState.value.note.copy(title = newTitle)
         )
+        scheduleAutoSave()
     }
 
     fun onContentChange(newContent: String) {
@@ -85,6 +112,7 @@ class NoteEditorViewModel(
         _uiState.value = _uiState.value.copy(
             note = _uiState.value.note.copy(content = newContent)
         )
+        scheduleAutoSave()
     }
 
     fun onColorChange(colorLong: Long) {
@@ -92,6 +120,7 @@ class NoteEditorViewModel(
         _uiState.value = _uiState.value.copy(
             note = _uiState.value.note.copy(color = colorLong)
         )
+        scheduleAutoSave()
     }
 
     fun onTextColorChange(textColorLong: Long?) {
@@ -99,6 +128,7 @@ class NoteEditorViewModel(
         _uiState.value = _uiState.value.copy(
             note = _uiState.value.note.copy(textColor = textColorLong)
         )
+        scheduleAutoSave()
     }
 
     fun onAddImage(imagePath: String) {
@@ -204,6 +234,7 @@ class NoteEditorViewModel(
                 content = newContent
             )
         )
+        scheduleAutoSave()
     }
 
     fun onChecklistItemChange(index: Int, item: ChecklistItem) {
@@ -214,6 +245,7 @@ class NoteEditorViewModel(
             _uiState.value = _uiState.value.copy(
                 note = _uiState.value.note.copy(checklistItems = items)
             )
+            scheduleAutoSave()
         }
     }
 
@@ -225,6 +257,7 @@ class NoteEditorViewModel(
             _uiState.value = _uiState.value.copy(
                 note = _uiState.value.note.copy(checklistItems = items)
             )
+            scheduleAutoSave()
         }
     }
 
@@ -235,6 +268,7 @@ class NoteEditorViewModel(
         _uiState.value = _uiState.value.copy(
             note = _uiState.value.note.copy(checklistItems = items)
         )
+        scheduleAutoSave()
     }
 
     fun onToggleLock(
@@ -294,24 +328,36 @@ class NoteEditorViewModel(
     }
 
     fun addCollaborator(email: String, role: CollaboratorRole) {
+        val cleanEmail = email.lowercase().trim()
         val currentCollaborators = _uiState.value.note.collaborators.toMutableMap()
-        currentCollaborators[email.lowercase()] = com.passvaultsec.app.domain.model.Collaborator(
-            email = email.lowercase(),
-            role = role
+        val now = System.currentTimeMillis()
+        currentCollaborators[cleanEmail] = com.passvaultsec.app.domain.model.Collaborator(
+            email = cleanEmail,
+            role = role,
+            addedAt = now
         )
         _uiState.value = _uiState.value.copy(
             note = _uiState.value.note.copy(collaborators = currentCollaborators)
         )
         saveNote()
+        val targetNoteId = _uiState.value.note.id
+        viewModelScope.launch {
+            repository.addCollaborator(targetNoteId, cleanEmail, role)
+        }
     }
 
     fun removeCollaborator(email: String) {
+        val cleanEmail = email.lowercase().trim()
         val currentCollaborators = _uiState.value.note.collaborators.toMutableMap()
-        currentCollaborators.remove(email.lowercase())
+        currentCollaborators.remove(cleanEmail)
         _uiState.value = _uiState.value.copy(
             note = _uiState.value.note.copy(collaborators = currentCollaborators)
         )
         saveNote()
+        val targetNoteId = _uiState.value.note.id
+        viewModelScope.launch {
+            repository.removeCollaborator(targetNoteId, cleanEmail)
+        }
     }
 
     fun setLocation(location: com.passvaultsec.app.domain.model.NoteLocation?) {
@@ -327,15 +373,21 @@ class NoteEditorViewModel(
     }
 
     fun saveNote() {
+        autoSaveJob?.cancel()
         val currentNote = _uiState.value.note
         // Si la nota está totalmente vacía y es nueva, no guardamos basura
         if (currentNote.title.isBlank() && currentNote.content.isBlank() && currentNote.checklistItems.isEmpty() && currentNote.imageUris.isEmpty() && currentNote.urlPreviews.isEmpty() && currentNote.location == null) {
             return
         }
 
+        val updatedTimestamp = maxOf(System.currentTimeMillis(), currentNote.updatedAt + 1)
+        val noteToSave = currentNote.copy(updatedAt = updatedTimestamp)
+        _uiState.value = _uiState.value.copy(note = noteToSave, isNewNote = false)
+
         viewModelScope.launch {
-            repository.saveNote(currentNote)
+            repository.saveNote(noteToSave)
         }
+        observeNoteChanges(noteToSave.id)
     }
 
     fun deleteNote(onComplete: () -> Unit) {

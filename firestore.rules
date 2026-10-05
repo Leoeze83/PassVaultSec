@@ -17,8 +17,14 @@ service cloud.firestore {
         return request.auth != null && 
                resource != null && 
                (
-                 ('collaboratorEmails' in resource.data && request.auth.token.email in resource.data.collaboratorEmails) ||
-                 ('collaborators' in resource.data && request.auth.token.email in resource.data.collaborators)
+                 ('collaboratorEmails' in resource.data && (
+                    request.auth.token.email in resource.data.collaboratorEmails ||
+                    request.auth.token.email.lower() in resource.data.collaboratorEmails
+                 )) ||
+                 ('collaborators' in resource.data && (
+                    request.auth.token.email in resource.data.collaborators ||
+                    request.auth.token.email.lower() in resource.data.collaborators
+                 ))
                );
       }
 
@@ -50,7 +56,9 @@ service cloud.firestore {
     match /invitations/{invitationId} {
       allow read, delete: if request.auth != null && (
         resource.data.collaboratorEmail == request.auth.token.email ||
-        resource.data.ownerEmail == request.auth.token.email
+        resource.data.collaboratorEmail == request.auth.token.email.lower() ||
+        resource.data.ownerEmail == request.auth.token.email ||
+        resource.data.ownerEmail == request.auth.token.email.lower()
       );
       allow create, update: if request.auth != null;
     }

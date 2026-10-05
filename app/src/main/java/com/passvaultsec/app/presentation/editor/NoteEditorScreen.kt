@@ -172,6 +172,12 @@ fun NoteEditorScreen(
         onNavigateBack()
     }
 
+    androidx.compose.runtime.DisposableEffect(Unit) {
+        onDispose {
+            viewModel.saveNote()
+        }
+    }
+
     BackHandler {
         handleBack()
     }

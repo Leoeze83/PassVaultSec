@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.Flow
 interface NoteRepository {
     fun getNotes(): Flow<List<Note>>
     suspend fun getNoteById(id: String): Note?
+    fun observeNoteById(id: String): Flow<Note?>
     suspend fun saveNote(note: Note): Result<Unit>
     suspend fun deleteNote(id: String): Result<Unit>
     suspend fun togglePin(id: String): Result<Unit>

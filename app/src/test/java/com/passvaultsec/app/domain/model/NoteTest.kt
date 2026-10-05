@@ -71,4 +71,23 @@ class NoteTest {
         assertFalse(note.canEdit("desconocido@gmail.com", "stranger-uid"))
         assertFalse(note.canRead("desconocido@gmail.com", "stranger-uid"))
     }
+
+    @Test
+    fun `test collaborator email matching is case insensitive`() {
+        val note = Note(
+            id = "note-5",
+            ownerId = "owner-uid",
+            ownerEmail = "Owner@Gmail.com",
+            collaborators = mapOf(
+                "colaborador@gmail.com" to Collaborator(
+                    email = "colaborador@gmail.com",
+                    role = CollaboratorRole.EDITOR
+                )
+            )
+        )
+
+        assertTrue(note.canEdit("CoLaBoRaDoR@gmail.com", "random-uid"))
+        assertTrue(note.canRead("COLABORADOR@GMAIL.COM", "random-uid"))
+        assertTrue(note.collaboratorEmails.contains("colaborador@gmail.com"))
+    }
 }
